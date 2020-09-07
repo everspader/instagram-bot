@@ -9,7 +9,7 @@ import time_helper
 def delete_user(username):
     conn = DbHandler.get_mydb()
     cursor = conn.cursor()
-    sql = f"DELETE FROM followers WHERE username = {username}"
+    sql = f"DELETE FROM followers WHERE username = '{username}'"
     cursor.execute(sql)
     conn.commit()
 

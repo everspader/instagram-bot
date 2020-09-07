@@ -40,7 +40,8 @@ def follow_people(webdriver):
                     '/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a').text
                 likes_over_limit = False
                 try:
-                    likes_raw = webdriver.find_element_by_xpath('/html/body/div[4]/div[2]/div/article/div[3]/section[2]/div/div/button/span').text
+                    likes_raw = webdriver.find_element_by_xpath(
+                        '/html/body/div[4]/div[2]/div/article/div[3]/section[2]/div/div/button/span').text
                     breakpoint()
                     likes = int(likes_raw.replace(',',''))
                     if likes > constants.LIKES_OVER:
@@ -48,8 +49,6 @@ def follow_people(webdriver):
                         likes_over_limit = True
                 # Exception in case there's no likes in a post yest
                 except NoSuchElementException:
-                    print("deu ruim")
-                    # traceback.print_exc()
                     pass
 
                 try:
@@ -97,6 +96,11 @@ def follow_people(webdriver):
 
 
 def unfollow_people(webdriver, people):
+    """
+    Unfollow new users based on the date that they were added
+    to the database and according to the number of days that
+    they should be kept as stated in the settings.
+    """
     if not isinstance(people, (list,)):
         p = people
         people = []
@@ -105,18 +109,30 @@ def unfollow_people(webdriver, people):
     for user in people:
         try:
             webdriver.get(f"https://www.instagram.com/{user}")
-            sleep(5)
-            unfollow_xpath = '//*[@id="react-root"]/section/main/div/header/section/div[1]/div[2]/div/span/span[1]/button'
+            sleep(3)
+            try:
+                unfollow_xpath = "//*[@id='react-root']/section/main/div/header/section/div[1]/div[2]/div/span/span[1]/button"
+                unfollow_element = webdriver.find_element_by_xpath(unfollow_xpath)
+                unfollow_element.click()
 
-            unfollow_confirm_xpath = '/html/body/div[6]/div/div/div/div[3]/button[1]'
+                try:
+                    unfollow_confirm_xpath = "/html/body/div[4]/div/div/div/div[3]/button[1]"
+                    unfollow_confirm_element = webdriver.find_element_by_xpath(unfollow_confirm_xpath)
+                    if unfollow_confirm_element.text == "Unfollow":
+                        unfollow_confirm_element.click()
+                        sleep(3)
+                        print(f"{user} unfollowed.")
+                        db_users.delete_user(user)
+                        print(f"{user} deleted from db")
+                except NoSuchElementException:
+                    print("Could not find confirm unfollow button. Skipping to next user.")
+                    continue
 
-            if webdriver.find_element_by_xpath(unfollow_xpath).text == "Following":
-                sleep(random.randint(4, 15))
-                webdriver.find_element_by_xpath(unfollow_xpath).click()
-                sleep(2)
-                webdriver.find_element_by_xpath(unfollow_confirm_xpath).click()
-                sleep(4)
-            db_users.delete_user(user)
+            except NoSuchElementException:
+                print(
+                    f"Could not find unfollow button on {user}'s page. Maybe you don't
+                    follow this user. Skipping to next user.")
+                continue
 
         except Exception:
             traceback.print_exc()

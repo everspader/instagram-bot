@@ -22,9 +22,12 @@ def update(webdriver):
 
 
 def _check_follow_list(webdriver):
-    print("Checking for users to unfollow")
 
+    print("Checking for users to unfollow...")
     users = db_users.check_unfollow_list()
 
-    if len(users) > 0:
+    if len(users) == 0:
+        print("No new users to unfollow.")
+    elif len(users) > 0:
+        print(f"{len(users)} new users will be unfollowed...")
         account_agent.unfollow_people(webdriver, users)
