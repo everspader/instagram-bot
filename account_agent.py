@@ -10,6 +10,10 @@ from login_page import LoginPage
 
 
 def login(webdriver):
+    """
+    Initialize Instagram's page and input username and password to
+    login and skip save info and notifications alerts.
+    """
     login_page = LoginPage(webdriver)
     username = constants.INST_USER
     password = constants.INST_PASS
@@ -130,10 +134,11 @@ def unfollow_people(webdriver, people):
 
             except NoSuchElementException:
                 print(
-                    f"Could not find unfollow button on {user}'s page. Maybe you don't
-                    follow this user. Skipping to next user.")
+                    f"Could not find unfollow button on {user}'s page. Maybe you don't "
+                    "follow this user. Skipping to next user.")
+                db_users.delete_user(user)
+                print(f"{user} deleted from db")
                 continue
-
         except Exception:
             traceback.print_exc()
             continue
