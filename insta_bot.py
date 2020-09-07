@@ -18,17 +18,11 @@ import bot_engine
 #     errors = browser.find_elements_by_css_selector('#error_message')
 #     assert len(errors) == 0
 
-# browser = webdriver.Firefox()
-
+# webdriver = webdriver.Firefox()
 webdriver = webdriver.Chrome()
 webdriver.implicitly_wait(5)
 
 bot_engine.init(webdriver)
 bot_engine.update(webdriver)
-
-# login_page = LoginPage(browser)
-# login_page.login(username, password)
-# login_page.skip_save_info()
-# login_page.skip_notifications()
 
 # browser.close()

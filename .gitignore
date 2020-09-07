@@ -2,3 +2,4 @@
 *.log
 instapy_bot.py
 __pycache__
+.vscode
