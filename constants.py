@@ -5,7 +5,6 @@ def init():
     global DB_USER, DB_HOST, DB_PASS, DB_NAME
     global DAYS_TO_UNFOLLOW, HASHTAGS, LIKES_OVER, CHECK_FOLLOWERS_EVERY
 
-
     data = None
     with open('settings.json', 'r') as f:
         data = f.read()
@@ -21,4 +20,5 @@ def init():
     LIKES_OVER = obj['config']['likes_over']
     CHECK_FOLLOWERS_EVERY = obj['config']['check_followers_every']
     HASHTAGS = obj['config']['hashtags']
+
     return obj
