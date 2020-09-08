@@ -6,7 +6,7 @@ global DB_USER, DB_HOST, DB_PASS, DB_NAME
 global DAYS_TO_UNFOLLOW, HASHTAGS, LIKES_OVER, CHECK_FOLLOWERS_EVERY
 
 data = None
-with open('settings.json', 'r') as f:
+with open('settings-local.json', 'r') as f:
     data = f.read()
 obj = json.loads(data)
 INST_USER = obj['instagram']['username']
