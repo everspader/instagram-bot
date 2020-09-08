@@ -1,3 +1,5 @@
+import datetime
+import random
 from time import sleep
 
 from selenium import webdriver
@@ -199,3 +201,81 @@ class InstagramBot():
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_session()
+
+
+    def follow_people(self, hashtags, interactions=10):
+        db = DbHandler()
+        prev_user_list = db.get_followed_list()
+        new_followed = []
+        followed = 0
+        new_likes = 0
+
+        for hashtag in hashtags:
+            self.webdriver.get(f'https://www.instagram.com/explore/tags/{hashtag}/')
+            sleep(5)
+
+            first_thumbnail = self.webdriver.find_element_by_xpath(
+                "//*[@id='react-root']/section/main/article/div[1]/div/div/div[1]/div[1]")
+            first_thumbnail.click()
+            sleep(random.randint(1, 3))
+
+            try:
+                for x in range(1, interactions):
+                    t_start = datetime.datetime.now()
+                    username = self.webdriver.find_element_by_xpath(
+                        '/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a').text
+                    likes_over_limit = False
+                    try:
+                        likes_raw = self.webdriver.find_element_by_xpath(
+                            '/html/body/div[4]/div[2]/div/article/div[3]/section[2]/div/div/button/span').text
+                        breakpoint()
+                        likes = int(likes_raw.replace(',',''))
+                        if likes > constants.LIKES_OVER:
+                            print(f"likes over {constants.LIKES_OVER}")
+                            likes_over_limit = True
+                    # Exception in case there's no likes in a post yest
+                    except NoSuchElementException:
+                        pass
+
+                    try:
+                        print(f"Detected: {username}")
+                        if username not in prev_user_list and not likes_over_limit:
+                            follow_button = '/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button'
+                            if self.webdriver.find_element_by_xpath(follow_button).text == 'Follow':
+                                db.add_user(username)
+                                self.webdriver.find_element_by_xpath(follow_button).click()
+                                followed += 1
+                                print(f"Followed: {username}, #{followed}")
+                                new_followed.append(username)
+
+                            button_like = self.webdriver.find_element_by_xpath(
+                                "/html/body/div[4]/div[2]/div/article/div[3]/section[1]/span[1]/button")
+                            button_like.click()
+                            likes += 1
+                            new_likes += 1
+                            print(f"Liked {username}'s post: {likes} likes")
+                            # sleep(random.randint(5, 18))
+                            sleep(3)
+
+                        self.webdriver.find_element_by_link_text('Next').click()
+                        # sleep(random.randint(20, 30))
+                        sleep(3)
+
+                    except:
+                        traceback.print_exc()
+                        continue
+
+                t_end = datetime.datetime.now()
+
+                t_elapsed = t_end - t_start
+                print(f"This post took {t_elapsed} seconds")
+
+            except:
+                traceback.print_exc()
+                continue
+
+            for n in range(0, len(new_followed)):
+                prev_user_list.append(new_followed[n])
+
+            print(f"Liked {new_likes} photos with the hashtag #{hashtag}")
+            print(f"Following {followed} new users")
