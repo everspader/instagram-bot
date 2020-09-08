@@ -7,6 +7,11 @@ import time_helper
 
 
 class DbHandler():
+    """
+    Class to handle the connection to the Postgres database
+    and define methods for retrieving information from followers
+    database.
+    """
 
     def __init__(self):
         self.HOST = constants.DB_HOST
@@ -19,7 +24,6 @@ class DbHandler():
     PASSWORD = constants.DB_PASS
     DBNAME = constants.DB_NAME
 
-    @staticmethod
     def get_mydb(self):
         if self.DBNAME == '':
             constants.init()
@@ -37,6 +41,7 @@ class DbHandler():
         )
         return conn
 
+    # class DbFollowers(DbHandler):
     def delete_user(self, username):
         """Delete a new followed user entry from database"""
         conn = self.get_mydb()

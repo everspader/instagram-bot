@@ -3,6 +3,7 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
+from db_handler import DbHandler
 
 class InstagramBot():
     """
@@ -72,15 +73,6 @@ class InstagramBot():
         # add to database
         pass
 
-    def unfollow_user(self, username):
-        """Unfollow a user provided its username"""
-        # remove from database
-        pass
-
-    def end_session(self):
-        """Close browser and terminate session"""
-        self.webdriver.close()
-
     def get_follow_list(self, username=None,
                            which_list='followers', amount=10):
         """
@@ -125,6 +117,85 @@ class InstagramBot():
     def get_number_of_followers(self, username):
         """Retrieve the number of followers from an user"""
         pass
+
+    def unfollow_new_followed_list(self):
+        """
+        Check if there are users that should be unfollowed and start
+        unfollowing them one by one.
+        """
+        print("Checking for users to unfollow...")
+        db = DbHandler()
+        unfollow_users = db.get_unfollow_list()
+
+        if len(unfollow_users) == 0:
+            print("No new users to unfollow.")
+        elif len(unfollow_users) > 0:
+            print(f"{len(unfollow_users)} new users will be unfollowed...")
+            self.unfollow_people(unfollow_users)
+
+    def unfollow_user(self, username):
+        """Unfollow a user provided its username"""
+        try:
+            self.webdriver.get(f"https://www.instagram.com/{user}")
+            sleep(3)
+            try:
+                unfollow_xpath = (
+                    "//*[@id='react-root']/section/main/div/header/section/div[1]/div[2]/div/span/span[1]/button")
+                unfollow_element = self.webdriver.find_element_by_xpath(unfollow_xpath)
+                unfollow_element.click()
+
+                try:
+                    unfollow_confirm_xpath = "/html/body/div[4]/div/div/div/div[3]/button[1]"
+                    unfollow_confirm_element = self.webdriver.find_element_by_xpath(unfollow_confirm_xpath)
+                    if unfollow_confirm_element.text == "Unfollow":
+                        unfollow_confirm_element.click()
+                        sleep(3)
+                        print(f"{user} unfollowed.")
+                        # db.delete_user(user)
+                        # db_users.delete_user(user)
+                        # print(f"{user} deleted from db")
+                except NoSuchElementException:
+                    print("Could not find confirm unfollow button.")
+                    # return exception
+                    pass
+
+            except NoSuchElementException:
+                print(
+                    f"Could not find unfollow button on {user}'s page. Maybe you don't "
+                    "follow this user.")
+                # db.delete_user(user)
+                # print(f"{user} deleted from db")
+                # return exception
+                pass
+        except:
+            traceback.print_exc()
+            # return exception
+            pass
+
+    def unfollow_people(self, people):
+        """
+        Unfollow new users based on the date that they were added
+        to the database and according to the number of days that
+        they should be kept as stated in the settings.
+        """
+        if not isinstance(people, (list,)):
+            p = people
+            people = []
+            people.append(p)
+
+        db = DbHandler()
+
+        for user in people:
+            try:
+                self.unfollow_user(user)
+            except:
+                pass
+            db.delete_user(user)
+            print(f"{user} deleted from db")
+
+    def end_session(self):
+        """Close browser and terminate session"""
+        self.webdriver.close()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_session()
