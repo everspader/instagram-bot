@@ -4,10 +4,13 @@ import traceback
 from time import sleep
 
 from selenium import webdriver
+from selenium.webdriver.support import ui
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
-
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from db_handler import DbHandler
+
 
 class InstagramBot():
     """
@@ -196,18 +199,10 @@ class InstagramBot():
             try:
                 self.unfollow_user(user)
                 db.delete_user(user)
-                print(f"{user} deleted from db. ({k+=1}/{len(people)})")
+                k+=1
+                print(f"{user} deleted from db. ({k}/{len(people)})")
             except:
                 traceback.print_exc()
-
-
-    def end_session(self):
-        """Close browser and terminate session"""
-        self.webdriver.close()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.end_session()
-
 
     def follow_people(self, hashtags, interactions=10, likes_over=500):
         """
@@ -303,3 +298,33 @@ class InstagramBot():
 
     def comment_post(self):
         pass
+
+    def end_session(self):
+        """Close browser and terminate session"""
+        self.webdriver.close()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end_session()
+
+    def comment_post(self, post_link, comment):
+        """Comment on a specific post from a link provided"""
+        print("Redirecting to the provided Instagram post...")
+        print("-" * 50)
+        self.webdriver.get(post_link)
+
+        try:
+            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
+            comment_box.click()
+            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
+            comment_box.send_keys(comment)
+            try:
+                comment_post = self.webdriver.find_element_by_css_selector(
+                    "button[type='submit']")
+            except NoSuchElementException:
+                print("Could not send comment to post. Element not found.")
+        except NoSuchElementException:
+            print("Could not write comment to post. Element not found.")
+
+        if comment_post.text == "Post":
+            comment_post.click()
+            print("")

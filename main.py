@@ -39,5 +39,7 @@ def main():
     #     instagram_bot.go_to_hashtags_pages(hashtags)
     #     # do stuff
 
+    instagram_bot.end_session()
+
 if __name__ == '__main__':
     main()
