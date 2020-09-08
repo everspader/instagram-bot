@@ -1,0 +1,18 @@
+{
+    "db": {
+        "host": "localhost",
+        "user": "postgres",
+        "pass": "",
+        "database": "instabot"
+    },
+    "instagram": {
+        "username": "",
+        "password": ""
+    },
+    "config": {
+        "days_to_unfollow": 0,
+        "likes_over": 500,
+        "check_followers_every": 3600,
+        "hashtags": [""]
+    }
+}
