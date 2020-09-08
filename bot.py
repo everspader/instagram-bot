@@ -1,9 +1,11 @@
 import datetime
 import random
+import traceback
 from time import sleep
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import NoSuchElementException
 
 from db_handler import DbHandler
 
@@ -131,14 +133,16 @@ class InstagramBot():
 
         if len(unfollow_users) == 0:
             print("No new users to unfollow.")
+            print("-" * 50)
         elif len(unfollow_users) > 0:
             print(f"{len(unfollow_users)} new users will be unfollowed...")
             self.unfollow_people(unfollow_users)
+            print("-" * 50)
 
     def unfollow_user(self, username):
         """Unfollow a user provided its username"""
         try:
-            self.webdriver.get(f"https://www.instagram.com/{user}")
+            self.webdriver.get(f"https://www.instagram.com/{username}")
             sleep(3)
             try:
                 unfollow_xpath = (
@@ -152,10 +156,7 @@ class InstagramBot():
                     if unfollow_confirm_element.text == "Unfollow":
                         unfollow_confirm_element.click()
                         sleep(3)
-                        print(f"{user} unfollowed.")
-                        # db.delete_user(user)
-                        # db_users.delete_user(user)
-                        # print(f"{user} deleted from db")
+                        print(f"{username} unfollowed.")
                 except NoSuchElementException:
                     print("Could not find confirm unfollow button.")
                     # return exception
@@ -187,13 +188,18 @@ class InstagramBot():
 
         db = DbHandler()
 
+        print(f"{len(people)} users to be unfollowed.")
+        print("-" * 50)
+        k = 0
+
         for user in people:
             try:
                 self.unfollow_user(user)
+                db.delete_user(user)
+                print(f"{user} deleted from db. ({k+=1}/{len(people)})")
             except:
-                pass
-            db.delete_user(user)
-            print(f"{user} deleted from db")
+                traceback.print_exc()
+
 
     def end_session(self):
         """Close browser and terminate session"""
@@ -203,7 +209,13 @@ class InstagramBot():
         self.end_session()
 
 
-    def follow_people(self, hashtags, interactions=10):
+    def follow_people(self, hashtags, interactions=10, likes_over=500):
+        """
+        Navigate to the spcific hashtag page and perform a given number
+        of interactions. An interaction is defined by liking a post and
+        following the user provided that the post is not over a likes
+        limit.
+        """
         db = DbHandler()
         prev_user_list = db.get_followed_list()
         new_followed = []
@@ -211,16 +223,18 @@ class InstagramBot():
         new_likes = 0
 
         for hashtag in hashtags:
+            print(f"Redirecting to tags page for: \"#{hashtag}\"")
+            print("-" * 50)
             self.webdriver.get(f'https://www.instagram.com/explore/tags/{hashtag}/')
             sleep(5)
 
             first_thumbnail = self.webdriver.find_element_by_xpath(
                 "//*[@id='react-root']/section/main/article/div[1]/div/div/div[1]/div[1]")
             first_thumbnail.click()
-            sleep(random.randint(1, 3))
+            sleep(3)
 
             try:
-                for x in range(1, interactions):
+                while new_likes < interactions:
                     t_start = datetime.datetime.now()
                     username = self.webdriver.find_element_by_xpath(
                         '/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a').text
@@ -228,18 +242,22 @@ class InstagramBot():
                     try:
                         likes_raw = self.webdriver.find_element_by_xpath(
                             '/html/body/div[4]/div[2]/div/article/div[3]/section[2]/div/div/button/span').text
-                        breakpoint()
                         likes = int(likes_raw.replace(',',''))
-                        if likes > constants.LIKES_OVER:
-                            print(f"likes over {constants.LIKES_OVER}")
+                        if likes > likes_over:
+                            print(f"{username}'s post has over {likes_over} likes.")
+                            print("-" * 50)
                             likes_over_limit = True
+                            self.webdriver.find_element_by_link_text('Next').click()
+                            sleep(3)
+                            continue
                     # Exception in case there's no likes in a post yest
                     except NoSuchElementException:
-                        pass
+                        print(f"Unable to find number of likes in {username}'s post.")
+                        continue
 
                     try:
-                        print(f"Detected: {username}")
                         if username not in prev_user_list and not likes_over_limit:
+                            print(f"Looking at {username}'s post...")
                             follow_button = '/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button'
                             if self.webdriver.find_element_by_xpath(follow_button).text == 'Follow':
                                 db.add_user(username)
@@ -254,16 +272,18 @@ class InstagramBot():
                             likes += 1
                             new_likes += 1
                             print(f"Liked {username}'s post: {likes} likes")
-                            # sleep(random.randint(5, 18))
                             sleep(3)
-
-                        self.webdriver.find_element_by_link_text('Next').click()
-                        # sleep(random.randint(20, 30))
-                        sleep(3)
+                            print("-" * 50)
+                        else:
+                            print(f"Already following {username}.")
+                            print("-" * 50)
 
                     except:
                         traceback.print_exc()
                         continue
+
+                    self.webdriver.find_element_by_link_text('Next').click()
+                    sleep(3)
 
                 t_end = datetime.datetime.now()
 
@@ -274,8 +294,12 @@ class InstagramBot():
                 traceback.print_exc()
                 continue
 
-            for n in range(0, len(new_followed)):
-                prev_user_list.append(new_followed[n])
+            prev_user_list.append(username)
 
             print(f"Liked {new_likes} photos with the hashtag #{hashtag}")
             print(f"Following {followed} new users")
+
+        return new_followed
+
+    def comment_post(self):
+        pass
