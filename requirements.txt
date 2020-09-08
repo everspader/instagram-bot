@@ -1,4 +1,3 @@
 pylint
 selenium
-instapy
 psycopg2-binary

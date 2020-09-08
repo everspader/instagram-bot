@@ -1,3 +1,4 @@
+*.json
 *.log
 instapy_bot.py
 __pycache__
