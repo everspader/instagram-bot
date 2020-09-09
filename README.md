@@ -3,10 +3,15 @@
 This is a simple Instagram bot created with Python 3.8 and Selenium webdriver for educational purposes only.\
 The concept behind the bot is to use Selenium webdriver to simulate the actions of a user acessing Instagram's website via the browser to interact with posts and users pages.\
 So far the interactions include:
+* Like posts;
+* Comment posts;
+* Follow/Unfollow users from their pages;
+* Follow users from a post's pages;
+* Retrieve username from post's page;
 * Visiting a given hashtag's page to:
-  * Like `n` posts with likes in a predefined range and follow the users
+  * Like `n` posts with less than a given number of likes and follow the users
 * Store the newly followed users in a database for `n` days
-* Unfollow a single or a list of users.
+* Unfollow a list of users;
 * Scrap off the list of followers or following users from a given user.
 * More to come...
 
