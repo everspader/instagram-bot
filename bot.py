@@ -67,68 +67,6 @@ class InstagramBot():
         except:
             pass
 
-    def get_follow_list(self, username=None,
-                           which_list='followers', amount=10):
-        """
-        Scrap off either the list of followers or following users,
-        from a specific username depending on the parameter set on
-        which_list. And return a given number in case there are too
-        many. If username not provided then retrieve list of followers
-        of the user that is logged in the session.
-        """
-        if username == None:
-            username = self.username
-        if which_list == 'followers':
-            list_item = 0
-        elif which_list == 'following':
-            list_item = 1
-
-        self.webdriver.get(f"https://www.instagram.com/{username}")
-        follow_link = self.webdriver.find_elements_by_css_selector('ul li a')[list_item]
-        follow_link.click()
-        sleep(2)
-        follow_list = self.webdriver.find_element_by_css_selector("div[role='dialog'] ul")
-        number_follow = len(follow_list.find_elements_by_css_selector("li"))
-
-        follow_list.click()
-        action_chain = webdriver.ActionChains(self.webdriver)
-        while (number_follow) < amount:
-            action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
-            number_follow = len(follow_list.find_elements_by_css_selector("li"))
-            print(number_follow)
-
-        follow = []
-        for user in follow_list.find_elements_by_css_selector("li"):
-            user_link = user.find_element_by_css_selector('a').get_attribute("href")
-            user_name = user_link.split('/')[-2]
-            print(user_name)
-            follow.append(user_name)
-            if len(follow) == amount:
-                break
-
-        return follow
-
-    def get_number_of_followers(self, username):
-        """Retrieve the number of followers from an user"""
-        pass
-
-    def unfollow_new_followed_list(self):
-        """
-        Check if there are users that should be unfollowed and start
-        unfollowing them one by one.
-        """
-        print("Checking for users to unfollow...")
-        db = DbHandler()
-        unfollow_users = db.get_unfollow_list()
-
-        if len(unfollow_users) == 0:
-            print("No new users to unfollow.")
-            print("-" * 50)
-        elif len(unfollow_users) > 0:
-            print(f"{len(unfollow_users)} new users will be unfollowed...")
-            self.unfollow_people(unfollow_users)
-            print("-" * 50)
-
     def unfollow_user(self, username):
         """Unfollow a user provided its username"""
         try:
@@ -169,7 +107,6 @@ class InstagramBot():
         """Start following a specific user"""
         self.webdriver.get(f"https://www.instagram.com/{username}")
         sleep(random.randint(3,5))
-        # breakpoint()
 
         buttons = self.webdriver.find_elements_by_css_selector('button')
         try:
@@ -185,25 +122,95 @@ class InstagramBot():
             return
         else:
             print(f"{username} is already being followed.")
-            breakpoint()
             return
 
+    def follow_user_on_post(self, post_url=None):
+        """Start following a user from a post"""
 
+        if post_url:
+            print("Redirecting to the provided Instagram post...")
+            print("-" * 50)
+            self.webdriver.get(post_url)
+            sleep(random.randint(8, 10))
 
+        try:
+            buttons = self.webdriver.find_elements_by_css_selector('button')
+            for n in buttons:
+                if n.text in ["Follow"]:
+                    follow_button = n
+                    follow_button.click()
+                    print(f"You are now following {username}.")
+                    print("-" * 50)
+                    sleep(random.randint(3,5))
+                    return
+        except:
+            print(f"{username} is already being followed.")
+            return
 
-    def like_post(self, link_post=None):
+    def like_post(self, post_url=None):
         """
         Like a currently loaded post or visit a post from the
         link_post provided
         """
-        if link_post:
-            self.webdriver.get(link_post)
+        if post_url:
+            print("Redirecting to the provided Instagram post...")
+            print("-" * 50)
+            self.webdriver.get(post_url)
             sleep(random.randint(8, 10))
-        # Like script
 
+        try:
+            button_like = self.webdriver.find_element_by_css_selector("svg[aria-label='Like']")
+            button_like.click()
+            print("Post liked.")
+        except NoSuchElementException:
+            print("Could not find like button. Post not liked.")
+            print("-" * 50)
 
-    def get_username_from_post(self, post):
-        pass
+        return
+
+    def comment_post(self, comment, post_url=None):
+        """Comment on a specific post from a link provided"""
+
+        if post_url:
+            print("Redirecting to the provided Instagram post...")
+            print("-" * 50)
+            self.webdriver.get(post_url)
+            sleep(random.randint(8, 10))
+
+        try:
+            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
+            comment_box.click()
+            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
+            comment_box.send_keys(comment)
+            try:
+                comment_post = self.webdriver.find_element_by_css_selector(
+                    "button[type='submit']")
+                if comment_post.text == "Post":
+                    comment_post.click()
+                    # print("")
+                    return
+            except NoSuchElementException:
+                print("Could not send comment to post. Element not found.")
+                return
+        except NoSuchElementException:
+            print("Could not write comment to post. Element not found.")
+            return
+
+    def get_username_from_post(self, post_url=None):
+        """Get the username of the poster"""
+        if post_url:
+            print("Redirecting to the provided Instagram post...")
+            print("-" * 50)
+            self.webdriver.get(post_url)
+            sleep(random.randint(8, 10))
+
+        try:
+            username_url = self.webdriver.find_element_by_css_selector('a')
+            username = username_url.get_attribute('href').split('/')[-2]
+            return username
+        except NoSuchElementException:
+            print("Couldn't find username of the poster.")
+            return
 
     def unfollow_people(self, people):
         """
@@ -323,28 +330,67 @@ class InstagramBot():
 
         return new_followed
 
-    def comment_post(self, post_link, comment):
-        """Comment on a specific post from a link provided"""
-        print("Redirecting to the provided Instagram post...")
-        print("-" * 50)
+    def get_follow_list(self, username=None,
+                           which_list='followers', amount=10):
+        """
+        Scrap off either the list of followers or following users,
+        from a specific username depending on the parameter set on
+        which_list. And return a given number in case there are too
+        many. If username not provided then retrieve list of followers
+        of the user that is logged in the session.
+        """
+        if username == None:
+            username = self.username
+        if which_list == 'followers':
+            list_item = 0
+        elif which_list == 'following':
+            list_item = 1
 
-        self.webdriver.get(post_link)
-        try:
-            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
-            comment_box.click()
-            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
-            comment_box.send_keys(comment)
-            try:
-                comment_post = self.webdriver.find_element_by_css_selector(
-                    "button[type='submit']")
-            except NoSuchElementException:
-                print("Could not send comment to post. Element not found.")
-        except NoSuchElementException:
-            print("Could not write comment to post. Element not found.")
+        self.webdriver.get(f"https://www.instagram.com/{username}")
+        follow_link = self.webdriver.find_elements_by_css_selector('ul li a')[list_item]
+        follow_link.click()
+        sleep(2)
+        follow_list = self.webdriver.find_element_by_css_selector("div[role='dialog'] ul")
+        number_follow = len(follow_list.find_elements_by_css_selector("li"))
 
-        if comment_post.text == "Post":
-            comment_post.click()
-            print("")
+        follow_list.click()
+        action_chain = webdriver.ActionChains(self.webdriver)
+        while (number_follow) < amount:
+            action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
+            number_follow = len(follow_list.find_elements_by_css_selector("li"))
+            print(number_follow)
+
+        follow = []
+        for user in follow_list.find_elements_by_css_selector("li"):
+            user_link = user.find_element_by_css_selector('a').get_attribute("href")
+            user_name = user_link.split('/')[-2]
+            print(user_name)
+            follow.append(user_name)
+            if len(follow) == amount:
+                break
+
+        return follow
+
+    def unfollow_new_followed_list(self):
+        """
+        Check if there are users that should be unfollowed and start
+        unfollowing them one by one.
+        """
+        print("Checking for users to unfollow...")
+        db = DbHandler()
+        unfollow_users = db.get_unfollow_list()
+
+        if len(unfollow_users) == 0:
+            print("No new users to unfollow.")
+            print("-" * 50)
+        elif len(unfollow_users) > 0:
+            print(f"{len(unfollow_users)} new users will be unfollowed...")
+            self.unfollow_people(unfollow_users)
+            print("-" * 50)
+
+    def get_number_of_followers(self, username):
+        """Retrieve the number of followers from an user"""
+        pass
 
     def end_session(self):
         """Close browser and terminate session"""
