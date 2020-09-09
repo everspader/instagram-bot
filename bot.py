@@ -28,7 +28,7 @@ class InstagramBot():
     def login(self):
         """Get the username and password, input in the fields and login"""
 
-        self.webdriver.get('https://www.instagram.com/')
+        webdriver.get('https://www.instagram.com/')
         print("Redirecting to Instagram's Log In page...")
         sleep(5)
         username_input = self.webdriver.find_element_by_name("username")
@@ -124,14 +124,18 @@ class InstagramBot():
             print(f"{username} is already being followed.")
             return
 
+    def go_to_post(self, post_url):
+        """Helper function to redirect to a post's page"""
+        print("Redirecting to the provided Instagram post...")
+        print("-" * 50)
+        self.webdriver.get(post_url)
+        sleep(random.randint(8, 10))
+
     def follow_user_on_post(self, post_url=None):
         """Start following a user from a post"""
 
         if post_url:
-            print("Redirecting to the provided Instagram post...")
-            print("-" * 50)
-            self.webdriver.get(post_url)
-            sleep(random.randint(8, 10))
+            self.go_to_post(post_url)
 
         try:
             buttons = self.webdriver.find_elements_by_css_selector('button')
@@ -153,10 +157,7 @@ class InstagramBot():
         link_post provided
         """
         if post_url:
-            print("Redirecting to the provided Instagram post...")
-            print("-" * 50)
-            self.webdriver.get(post_url)
-            sleep(random.randint(8, 10))
+            self.go_to_post(post_url)
 
         try:
             button_like = self.webdriver.find_element_by_css_selector("svg[aria-label='Like']")
@@ -172,10 +173,7 @@ class InstagramBot():
         """Comment on a specific post from a link provided"""
 
         if post_url:
-            print("Redirecting to the provided Instagram post...")
-            print("-" * 50)
-            self.webdriver.get(post_url)
-            sleep(random.randint(8, 10))
+            self.go_to_post(post_url)
 
         try:
             comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
@@ -199,10 +197,7 @@ class InstagramBot():
     def get_username_from_post(self, post_url=None):
         """Get the username of the poster"""
         if post_url:
-            print("Redirecting to the provided Instagram post...")
-            print("-" * 50)
-            self.webdriver.get(post_url)
-            sleep(random.randint(8, 10))
+            self.go_to_post(post_url)
 
         try:
             username_url = self.webdriver.find_element_by_css_selector('a')
