@@ -14,7 +14,7 @@ post_link = 'https://www.instagram.com/p/CDZsXbvpdxI/'
 
 instagram_bot = InstagramBot(username, password)
 instagram_bot.login()
-instagram_bot.follow_user("_valentinee75")
+
 breakpoint()
 print("Redirecting to...")
 print(f"{post_link}")
@@ -22,7 +22,6 @@ print("-" * 50)
 
 # user_list = instagram_bot.get_follow_list(which_list='following', 10)
 #Number of users to be combined in the comments
-user_list = ['gbmarangon', 'elizeupossamai', 'rafaelsanchesx', 'm4r1n1']
 combine_users = 4
 
 while len(user_list) >= combine_users:
