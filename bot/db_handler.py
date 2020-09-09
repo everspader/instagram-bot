@@ -2,8 +2,8 @@ import datetime
 
 import psycopg2
 
-import constants
-import time_helper
+from bot import constants
+from bot import time_helper
 
 
 class DbHandler():

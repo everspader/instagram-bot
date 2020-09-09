@@ -1,12 +1,17 @@
 import json
-
+import os
 
 global INST_USER, INST_PASS
 global DB_USER, DB_HOST, DB_PASS, DB_NAME
 global DAYS_TO_UNFOLLOW, HASHTAGS, LIKES_OVER, CHECK_FOLLOWERS_EVERY
 
 data = None
-with open('settings-local.json', 'r') as f:
+settings = "settings-local.json"
+
+par_path = os.path.abspath(os.path.join(os.getcwd(),os.pardir))
+settings_path = os.path.join(par_path, settings)
+
+with open(settings_path, 'r') as f:
     data = f.read()
 obj = json.loads(data)
 INST_USER = obj['instagram']['username']

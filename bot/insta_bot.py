@@ -7,8 +7,6 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 
-from db_handler import DbHandler
-
 
 class InstagramBot():
     """
@@ -28,17 +26,14 @@ class InstagramBot():
 
         self.webdriver.get('https://www.instagram.com/')
         print("Redirecting to Instagram's Log In page...")
-        sleep(5)
+        sleep(random.randint(5,7))
         username_input = self.webdriver.find_element_by_name("username")
         password_input = self.webdriver.find_element_by_name("password")
         username_input.send_keys(self.username)
         password_input.send_keys(self.password)
         password_input.send_keys(Keys.ENTER)
-        # login_button = self.webdriver.find_element_by_xpath(
-        #     "//*[@id='loginForm']/div/div[3]/button/div")
-        # login_button.click()
         print("Login successful!")
-        sleep(5)
+        sleep(random.randint(5,7))
         self.skip_dialogs()
         print("-" * 50)
 
@@ -52,7 +47,7 @@ class InstagramBot():
                 "//*[@id='react-root']/section/main/div/div/div/div/button")
             save_info_button.click()
             print("Skipping save info pop up alert.")
-            sleep(2)
+            sleep(random.randint(2,4))
         except:
             pass
 
@@ -61,7 +56,7 @@ class InstagramBot():
                 "/html/body/div[4]/div/div/div/div[3]/button[2]")
             notificaiton_button.click()
             print("Skipping enable notifications alert.")
-            sleep(2)
+            sleep(random.randint(2,4))
         except:
             pass
 
@@ -124,6 +119,7 @@ class InstagramBot():
 
     def go_to_post(self, post_url):
         """Helper function to redirect to a post's page"""
+
         print("Redirecting to the provided Instagram post...")
         print("-" * 50)
         self.webdriver.get(post_url)

@@ -2,28 +2,42 @@ import datetime
 import random
 from time import sleep
 
-import constants
-from db_handler import DbHandler
-from bot import InstagramBot
+from bot import constants, InstagramBot, DbHandler
 
 
 username = constants.INST_USER
 password = constants.INST_PASS
 
-post_link = 'https://www.instagram.com/p/CDZsXbvpdxI/'
-
 instagram_bot = InstagramBot(username, password)
 instagram_bot.login()
 
-breakpoint()
-print("Redirecting to...")
-print(f"{post_link}")
-print("-" * 50)
+promo_settings = {
+     "post_url": "",
+     "user_list": user_list,
+     "combine_users": 2,
+     "like_post": True,
+     "follow_user": True,
+}
 
-# user_list = instagram_bot.get_follow_list(which_list='following', 10)
-#Number of users to be combined in the comments
-combine_users = 4
+if not user_list:
+    user_list = instagram_bot.get_follow_list(which_list='following', amount=10)
 
+# Convert dict pairs keys,items into variables
+locals().update(promo_settings)
+
+try:
+    instagram_bot.go_to_post(post_url=post_url)
+except:
+    print("You must provide the URL to the post.")
+
+if like_post:
+    instagram_bot.like_post()
+if follow_user:
+    instagram_bot.follow_user_on_post()
+if not combine_users:
+    combine_users = 1
+
+comment_combinations = 0
 while len(user_list) >= combine_users:
     comment = ""
     for n in range(combine_users):
@@ -31,8 +45,8 @@ while len(user_list) >= combine_users:
         comment += f"@{user_n} "
     rm_one_user = user_list.pop(0)
 
-    instagram_bot.comment_post(post_link, comment)
-    sleep(random.randint(5,7))
+    instagram_bot.comment_post(comment)
+    comment_combinations += 1
+    sleep(random.randint(3,5))
 
-    #include follow user function
-    #include like post function
+instagram_bot.end_session()

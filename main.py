@@ -1,9 +1,7 @@
 import datetime
 from time import sleep
 
-import constants
-from db_handler import DbHandler
-from bot import InstagramBot
+from bot import constants, InstagramBot, DbHandler
 
 
 def main():
