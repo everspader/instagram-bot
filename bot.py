@@ -4,11 +4,9 @@ import traceback
 from time import sleep
 
 from selenium import webdriver
-from selenium.webdriver.support import ui
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+
 from db_handler import DbHandler
 
 
@@ -28,7 +26,7 @@ class InstagramBot():
     def login(self):
         """Get the username and password, input in the fields and login"""
 
-        webdriver.get('https://www.instagram.com/')
+        self.webdriver.get('https://www.instagram.com/')
         print("Redirecting to Instagram's Log In page...")
         sleep(5)
         username_input = self.webdriver.find_element_by_name("username")
@@ -185,7 +183,7 @@ class InstagramBot():
                     "button[type='submit']")
                 if comment_post.text == "Post":
                     comment_post.click()
-                    # print("")
+                    sleep(random.randint(3,5))
                     return
             except NoSuchElementException:
                 print("Could not send comment to post. Element not found.")
