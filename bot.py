@@ -67,19 +67,6 @@ class InstagramBot():
         except:
             pass
 
-    def go_to_hashtags_pages(self, hashtag):
-        """
-        Navigate to the hashtag pages to interact with posts
-        os a specific hashtag.
-        """
-        self.webdriver.get(f'https://www.instagram.com/explore/tags/{hashtag}/')
-        sleep(5)
-
-    def follow_user(self, username):
-        """Follow a user provided its username"""
-        # add to database
-        pass
-
     def get_follow_list(self, username=None,
                            which_list='followers', amount=10):
         """
@@ -177,6 +164,46 @@ class InstagramBot():
             traceback.print_exc()
             # return exception
             pass
+
+    def follow_user(self, username):
+        """Start following a specific user"""
+        self.webdriver.get(f"https://www.instagram.com/{username}")
+        sleep(random.randint(3,5))
+        # breakpoint()
+
+        buttons = self.webdriver.find_elements_by_css_selector('button')
+        try:
+            for n in buttons:
+                if n.text in ["Follow Back", "Follow"]:
+                    follow_button = n
+                    follow_button.click()
+                    print(f"You are now following {username}.")
+                    print("-" * 50)
+                    sleep(random.randint(3,5))
+                    return
+        except:
+            return
+        else:
+            print(f"{username} is already being followed.")
+            breakpoint()
+            return
+
+
+
+
+    def like_post(self, link_post=None):
+        """
+        Like a currently loaded post or visit a post from the
+        link_post provided
+        """
+        if link_post:
+            self.webdriver.get(link_post)
+            sleep(random.randint(8, 10))
+        # Like script
+
+
+    def get_username_from_post(self, post):
+        pass
 
     def unfollow_people(self, people):
         """
@@ -296,22 +323,12 @@ class InstagramBot():
 
         return new_followed
 
-    def comment_post(self):
-        pass
-
-    def end_session(self):
-        """Close browser and terminate session"""
-        self.webdriver.close()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.end_session()
-
     def comment_post(self, post_link, comment):
         """Comment on a specific post from a link provided"""
         print("Redirecting to the provided Instagram post...")
         print("-" * 50)
-        self.webdriver.get(post_link)
 
+        self.webdriver.get(post_link)
         try:
             comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
             comment_box.click()
@@ -328,3 +345,10 @@ class InstagramBot():
         if comment_post.text == "Post":
             comment_post.click()
             print("")
+
+    def end_session(self):
+        """Close browser and terminate session"""
+        self.webdriver.close()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end_session()
