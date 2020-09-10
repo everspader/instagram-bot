@@ -1,5 +1,7 @@
 import datetime
 import random
+import requests
+import re
 import traceback
 from time import sleep
 
@@ -320,7 +322,7 @@ class InstagramBot():
         return new_followed
 
     def get_follow_list(self, username=None,
-                           which_list='followers', amount=10):
+                        which_list='followers', amount=None):
         """
         Scrap off either the list of followers or following users,
         from a specific username depending on the parameter set on
@@ -328,12 +330,14 @@ class InstagramBot():
         many. If username not provided then retrieve list of followers
         of the user that is logged in the session.
         """
-        if username == None:
+        if username is None:
             username = self.username
         if which_list == 'followers':
             list_item = 0
         elif which_list == 'following':
             list_item = 1
+        if amount is None:
+            amount = self.get_number_follow(username, which_list)
 
         self.webdriver.get(f"https://www.instagram.com/{username}")
         follow_link = self.webdriver.find_elements_by_css_selector('ul li a')[list_item]
@@ -377,13 +381,24 @@ class InstagramBot():
             self.unfollow_people(unfollow_users)
             print("-" * 50)
 
-    def get_number_of_followers(self, username):
-        """Retrieve the number of followers from an user"""
-        pass
-
     def end_session(self):
         """Close browser and terminate session"""
         self.webdriver.close()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.end_session()
+
+    def get_number_follow(self, username=None, which_list="following"):
+        """Get the total number of followers or following"""
+
+        if username is None:
+            username = self.get_username_from_post()
+
+        url = f'https://www.instagram.com/{username}'
+        r = requests.get(url).text
+        if which_list == "followers":
+            number_follow = re.search('"edge_followed_by":{"count":([0-9]+)}',r).group(1)
+        else:
+            number_follow = re.search('"edge_follow":{"count":([0-9]+)}',r).group(1)
+
+        return number_follow
