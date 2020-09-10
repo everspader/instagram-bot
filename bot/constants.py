@@ -8,8 +8,7 @@ global DAYS_TO_UNFOLLOW, HASHTAGS, LIKES_OVER, CHECK_FOLLOWERS_EVERY
 data = None
 settings = "settings-local.json"
 
-par_path = os.path.abspath(os.path.join(os.getcwd(),os.pardir))
-settings_path = os.path.join(par_path, settings)
+settings_path = os.path.join(os.getcwd(), settings)
 
 with open(settings_path, 'r') as f:
     data = f.read()
