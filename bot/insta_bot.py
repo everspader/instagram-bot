@@ -5,6 +5,7 @@ import re
 import traceback
 from time import sleep
 
+from instaloader import Instaloader, Profile
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
@@ -122,10 +123,14 @@ class InstagramBot():
     def go_to_post(self, post_url):
         """Helper function to redirect to a post's page"""
 
-        print("Redirecting to the provided Instagram post...")
-        print("-" * 50)
-        self.webdriver.get(post_url)
-        sleep(random.randint(8, 10))
+        try:
+            self.webdriver.get(post_url)
+            print("Redirecting to the provided Instagram post...")
+            print("-" * 50)
+            sleep(random.randint(8, 10))
+        except:
+            print(f"Missing post URL info.")
+            return Exception
 
     def follow_user_on_post(self, post_url=None):
         """Start following a user from a post"""
@@ -321,8 +326,8 @@ class InstagramBot():
 
         return new_followed
 
-    def get_follow_list(self, username=None,
-                        which_list='followers', amount=None):
+    def OLD_get_follow_list(self, username=None,
+                            which_list='followers', amount=None):
         """
         Scrap off either the list of followers or following users,
         from a specific username depending on the parameter set on
@@ -345,22 +350,51 @@ class InstagramBot():
         sleep(2)
         follow_list = self.webdriver.find_element_by_css_selector("div[role='dialog'] ul")
         number_follow = len(follow_list.find_elements_by_css_selector("li"))
-
+        breakpoint()
         follow_list.click()
         action_chain = webdriver.ActionChains(self.webdriver)
         while (number_follow) < amount:
             action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
             number_follow = len(follow_list.find_elements_by_css_selector("li"))
-            print(number_follow)
 
         follow = []
         for user in follow_list.find_elements_by_css_selector("li"):
             user_link = user.find_element_by_css_selector('a').get_attribute("href")
             user_name = user_link.split('/')[-2]
-            print(user_name)
             follow.append(user_name)
             if len(follow) == amount:
                 break
+
+        return follow
+
+    def get_follow_list(self, username=None, which_list="following", amount=None):
+        """
+        Get the list of followers or followees of a user using
+        instaloader package
+        """
+        t_start = datetime.datetime.now()
+        L = Instaloader()
+        L.login(self.username, self.password)
+
+        if username is None:
+            username = self.username
+
+        profile = Profile.from_username(L.context, username)
+
+        if which_list == "following":
+            follow_node = profile.get_followees()
+        elif whihc_list == "followers":
+            follow_node = profile.get_followers()
+
+        follow = [f.username for f in follow_node]
+        if amount:
+            follow = random.choice(follow ,k=amount)
+        # amount = self.get_number_follow(username, which_list)
+
+        t_end = datetime.datetime.now()
+        elapsed = (t_end - t_start).total_seconds()
+        print(f"It took {elapsed} seconds to get the {which_list} list")
+        print("-" * 50)
 
         return follow
 
@@ -381,15 +415,11 @@ class InstagramBot():
             self.unfollow_people(unfollow_users)
             print("-" * 50)
 
-    def end_session(self):
-        """Close browser and terminate session"""
-        self.webdriver.close()
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.end_session()
-
     def get_number_follow(self, username=None, which_list="following"):
-        """Get the total number of followers or following"""
+        """
+        Alternative method to scrap the list of followers or following
+        from a user using the Selenium package. Takes longer times.
+        """
 
         if username is None:
             username = self.get_username_from_post()
@@ -401,4 +431,11 @@ class InstagramBot():
         else:
             number_follow = re.search('"edge_follow":{"count":([0-9]+)}',r).group(1)
 
-        return number_follow
+        return int(number_follow)
+
+    def end_session(self):
+        """Close browser and terminate session"""
+        self.webdriver.close()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end_session()
