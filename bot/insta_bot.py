@@ -10,6 +10,8 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 
+from db_handler import DbHandler
+
 
 class InstagramBot():
     """
@@ -208,6 +210,10 @@ class InstagramBot():
             print("Couldn't find username of the poster.")
             return
 
+    def get_like_list_from_post(self, post):
+        """Retrieve the list of users that liked a post"""
+        pass
+
     def unfollow_people(self, people):
         """
         Unfollow new users based on the date that they were added
@@ -230,11 +236,38 @@ class InstagramBot():
                 self.unfollow_user(user)
                 db.delete_user(user)
                 k+=1
-                print(f"{user} deleted from db. ({k}/{len(people)})")
+                print(f"@{user} deleted from db. ({k}/{len(people)})")
             except:
                 traceback.print_exc()
 
-    def follow_people(self, hashtags, interactions=10, likes_over=500):
+    def follow_people(self, people, store=None):
+        """Follow a list of users and save them in db (optional)"""
+
+        if not isinstance(people, (list,)):
+            p = people
+            people = []
+            people.append(p)
+
+        print(f"{len(people)} users to be followed.")
+        print("-" * 50)
+
+        if store is not None:
+            db = DbHandler()
+
+        k = 0
+        for user in people:
+            try:
+                self.follow_user(user)
+                if store:
+                    db.add_user(user)
+                k+=1
+                print(f"Now following: @{user}. ({k}/{len(people)})")
+            except:
+                traceback.print_exc()
+        return
+
+    def follow_people_from_hashtags(self, hashtags,
+                                    interactions=10, likes_over=500):
         """
         Navigate to the spcific hashtag page and perform a given number
         of interactions. An interaction is defined by liking a post and
@@ -326,46 +359,23 @@ class InstagramBot():
 
         return new_followed
 
-    def OLD_get_follow_list(self, username=None,
-                            which_list='followers', amount=None):
+    def get_number_follow(self, username=None, which_list="following"):
         """
-        Scrap off either the list of followers or following users,
-        from a specific username depending on the parameter set on
-        which_list. And return a given number in case there are too
-        many. If username not provided then retrieve list of followers
-        of the user that is logged in the session.
+        Alternative method to scrap the list of followers or following
+        from a user using the Selenium package. Takes longer times.
         """
+
         if username is None:
-            username = self.username
-        if which_list == 'followers':
-            list_item = 0
-        elif which_list == 'following':
-            list_item = 1
-        if amount is None:
-            amount = self.get_number_follow(username, which_list)
+            username = self.get_username_from_post()
 
-        self.webdriver.get(f"https://www.instagram.com/{username}")
-        follow_link = self.webdriver.find_elements_by_css_selector('ul li a')[list_item]
-        follow_link.click()
-        sleep(2)
-        follow_list = self.webdriver.find_element_by_css_selector("div[role='dialog'] ul")
-        number_follow = len(follow_list.find_elements_by_css_selector("li"))
-        breakpoint()
-        follow_list.click()
-        action_chain = webdriver.ActionChains(self.webdriver)
-        while (number_follow) < amount:
-            action_chain.key_down(Keys.SPACE).key_up(Keys.SPACE).perform()
-            number_follow = len(follow_list.find_elements_by_css_selector("li"))
+        url = f'https://www.instagram.com/{username}'
+        r = requests.get(url).text
+        if which_list == "followers":
+            number_follow = re.search('"edge_followed_by":{"count":([0-9]+)}',r).group(1)
+        else:
+            number_follow = re.search('"edge_follow":{"count":([0-9]+)}',r).group(1)
 
-        follow = []
-        for user in follow_list.find_elements_by_css_selector("li"):
-            user_link = user.find_element_by_css_selector('a').get_attribute("href")
-            user_name = user_link.split('/')[-2]
-            follow.append(user_name)
-            if len(follow) == amount:
-                break
-
-        return follow
+        return int(number_follow)
 
     def get_follow_list(self, username=None, which_list="following", amount=None):
         """
@@ -414,24 +424,7 @@ class InstagramBot():
             print(f"{len(unfollow_users)} new users will be unfollowed...")
             self.unfollow_people(unfollow_users)
             print("-" * 50)
-
-    def get_number_follow(self, username=None, which_list="following"):
-        """
-        Alternative method to scrap the list of followers or following
-        from a user using the Selenium package. Takes longer times.
-        """
-
-        if username is None:
-            username = self.get_username_from_post()
-
-        url = f'https://www.instagram.com/{username}'
-        r = requests.get(url).text
-        if which_list == "followers":
-            number_follow = re.search('"edge_followed_by":{"count":([0-9]+)}',r).group(1)
-        else:
-            number_follow = re.search('"edge_follow":{"count":([0-9]+)}',r).group(1)
-
-        return int(number_follow)
+        return
 
     def end_session(self):
         """Close browser and terminate session"""
