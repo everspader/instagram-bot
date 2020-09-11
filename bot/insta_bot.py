@@ -112,7 +112,6 @@ class InstagramBot():
                     follow_button = n
                     follow_button.click()
                     print(f"You are now following {username}.")
-                    print("-" * 50)
                     sleep(random.randint(3,5))
                     return
         except:
@@ -254,6 +253,7 @@ class InstagramBot():
                 db.delete_user(user)
                 k+=1
                 print(f"@{user} deleted from db. ({k}/{len(people)})")
+                print("-" * 50)
             except:
                 traceback.print_exc()
 
@@ -279,6 +279,7 @@ class InstagramBot():
                     db.add_user(user)
                 k+=1
                 print(f"Now following: @{user}. ({k}/{len(people)})")
+                print("-" * 50)
             except:
                 traceback.print_exc()
         return
