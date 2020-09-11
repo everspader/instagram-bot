@@ -6,7 +6,7 @@ global DB_USER, DB_HOST, DB_PASS, DB_NAME
 global DAYS_TO_UNFOLLOW, HASHTAGS, LIKES_OVER, CHECK_FOLLOWERS_EVERY
 
 data = None
-settings = "settings-local.json"
+settings = "settings-test.json"
 
 settings_path = os.path.join(os.getcwd(), settings)
 

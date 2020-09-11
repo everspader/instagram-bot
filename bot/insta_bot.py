@@ -10,7 +10,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
 
-from db_handler import DbHandler
+from bot.db_handler import DbHandler
 
 
 class InstagramBot():
@@ -71,18 +71,18 @@ class InstagramBot():
             self.webdriver.get(f"https://www.instagram.com/{username}")
             sleep(3)
             try:
-                unfollow_xpath = (
-                    "//*[@id='react-root']/section/main/div/header/section/div[1]/div[2]/div/span/span[1]/button")
-                unfollow_element = self.webdriver.find_element_by_xpath(unfollow_xpath)
+                unfollow_xpath = "button span[aria-label='Following']"
+                unfollow_element = self.webdriver.find_element_by_css_selector(unfollow_xpath)
                 unfollow_element.click()
+                sleep(random.randint(2,3))
 
                 try:
-                    unfollow_confirm_xpath = "/html/body/div[4]/div/div/div/div[3]/button[1]"
+                    unfollow_confirm_xpath = "//*[text()='Unfollow']"
                     unfollow_confirm_element = self.webdriver.find_element_by_xpath(unfollow_confirm_xpath)
                     if unfollow_confirm_element.text == "Unfollow":
                         unfollow_confirm_element.click()
-                        sleep(3)
-                        print(f"{username} unfollowed.")
+                        sleep(random.randint(2,3))
+                        print(f"@{username} unfollowed.")
                 except NoSuchElementException:
                     print("Could not find confirm unfollow button.")
                     # return exception
@@ -90,7 +90,7 @@ class InstagramBot():
 
             except NoSuchElementException:
                 print(
-                    f"Could not find unfollow button on {user}'s page. Maybe you don't "
+                    f"Could not find unfollow button on {username}'s page. Maybe you don't "
                     "follow this user.")
                 # db.delete_user(user)
                 # print(f"{user} deleted from db")
@@ -169,7 +169,7 @@ class InstagramBot():
         except NoSuchElementException:
             print("Could not find like button. Post not liked.")
             print("-" * 50)
-
+        self.webdriver.find
         return
 
     def comment_post(self, comment, post_url=None):
@@ -398,12 +398,12 @@ class InstagramBot():
 
         follow = [f.username for f in follow_node]
         if amount:
-            follow = random.choice(follow ,k=amount)
+            follow = random.sample(follow, amount)
         # amount = self.get_number_follow(username, which_list)
 
         t_end = datetime.datetime.now()
         elapsed = (t_end - t_start).total_seconds()
-        print(f"It took {elapsed} seconds to get the {which_list} list")
+        print(f"It took {elapsed} seconds to retrieve the list of {which_list}")
         print("-" * 50)
 
         return follow
