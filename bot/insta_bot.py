@@ -181,7 +181,6 @@ class InstagramBot():
 
     def comment_post(self, comment, post_url=None):
         """Comment on a specific post from a link provided"""
-        breakpoint()
         current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
@@ -212,12 +211,17 @@ class InstagramBot():
 
     def get_username_from_post(self, post_url=None):
         """Get the username of the poster"""
+        breakpoint()
+        current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
+        elif "instagram.com/p/" not in current_url:
+            print("An URL to a post must be provided.")
+            return
 
         try:
-            username_url = self.webdriver.find_element_by_css_selector('a')
-            username = username_url.get_attribute('href').split('/')[-2]
+            username_url = self.webdriver.find_element_by_css_selector('a[href]')
+            username = username_url.get_attribute("text")
             return username
         except NoSuchElementException:
             print("Couldn't find username of the poster.")
