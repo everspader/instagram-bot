@@ -49,7 +49,7 @@ class InstagramBot():
         """
         try:
             save_info_button = self.webdriver.find_element_by_xpath(
-                "//*[@id='react-root']/section/main/div/div/div/div/button")
+                "//*[text()='Not Now']")
             save_info_button.click()
             print("Skipping save info pop up alert.")
             sleep(random.randint(2,4))
@@ -57,9 +57,8 @@ class InstagramBot():
             pass
 
         try:
-            notificaiton_button = self.webdriver.find_element_by_xpath(
-                "/html/body/div[4]/div/div/div/div[3]/button[2]")
-            notificaiton_button.click()
+            notification_button = self.webdriver.find_element_by_xpath("//*[text()='Not Now']")
+            notification_button.click()
             print("Skipping enable notifications alert.")
             sleep(random.randint(2,4))
         except:
@@ -136,9 +135,12 @@ class InstagramBot():
 
     def follow_user_on_post(self, post_url=None):
         """Start following a user from a post"""
-
+        current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
+        elif "instagram.com/p/" not in current_url:
+            print("An URL to a post must be provided.")
+            return
 
         try:
             buttons = self.webdriver.find_elements_by_css_selector('button')
@@ -159,29 +161,40 @@ class InstagramBot():
         Like a currently loaded post or visit a post from the
         link_post provided
         """
+        current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
+        elif "instagram.com/p/" not in current_url:
+            print("An URL to a post must be provided.")
+            return
 
         try:
-            button_like = self.webdriver.find_element_by_css_selector("svg[aria-label='Like']")
+            button_like = self.webdriver.find_element_by_css_selector(
+                "svg[aria-label='Like']")
             button_like.click()
             print("Post liked.")
         except NoSuchElementException:
             print("Could not find like button. Post not liked.")
-            print("-" * 50)
-        self.webdriver.find
+
+        print("-" * 50)
         return
 
     def comment_post(self, comment, post_url=None):
         """Comment on a specific post from a link provided"""
-
+        breakpoint()
+        current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
+        elif "instagram.com/p/" not in current_url:
+            print("An URL to a post must be provided.")
+            return
 
         try:
-            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
+            comment_box = self.webdriver.find_element_by_css_selector(
+                "button svg[aria-label='Comment']")
             comment_box.click()
-            comment_box = self.webdriver.find_element_by_css_selector("textarea.Ypffh")
+            comment_box = self.webdriver.find_element_by_css_selector(
+                "form textarea")
             comment_box.send_keys(comment)
             try:
                 comment_post = self.webdriver.find_element_by_css_selector(
