@@ -1,5 +1,6 @@
 __pycache__
 *-local.json
+*-test.json
 *.log
 .vscode
 instapy_bot.py
