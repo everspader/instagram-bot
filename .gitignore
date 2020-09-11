@@ -4,4 +4,6 @@ __pycache__
 *.log
 .vscode
 instapy_bot.py
-test.py
+test*.py
+*.sh
+crontab
