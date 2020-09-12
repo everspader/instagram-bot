@@ -364,7 +364,7 @@ class InstagramBot():
         new_followed = []
         followed = 0
         new_likes = 0
-        breakpoint()
+
         for hashtag in hashtags:
             print(f"Redirecting to tags page for: \"#{hashtag}\"")
             print("-" * 50)
