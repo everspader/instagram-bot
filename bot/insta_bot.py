@@ -297,28 +297,27 @@ class InstagramBot():
         new_followed = []
         followed = 0
         new_likes = 0
-
+        breakpoint()
         for hashtag in hashtags:
             print(f"Redirecting to tags page for: \"#{hashtag}\"")
             print("-" * 50)
             self.webdriver.get(f'https://www.instagram.com/explore/tags/{hashtag}/')
             sleep(5)
 
-            first_thumbnail = self.webdriver.find_element_by_xpath(
-                "//*[@id='react-root']/section/main/article/div[1]/div/div/div[1]/div[1]")
+            first_thumbnail = self.webdriver.find_element_by_css_selector(
+                "a[href]")
             first_thumbnail.click()
             sleep(3)
 
             try:
                 while new_likes < interactions:
                     t_start = datetime.datetime.now()
-                    username = self.webdriver.find_element_by_xpath(
-                        '/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a').text
+                    username = self.get_username_from_post()
                     likes_over_limit = False
                     try:
-                        likes_raw = self.webdriver.find_element_by_xpath(
-                            '/html/body/div[4]/div[2]/div/article/div[3]/section[2]/div/div/button/span').text
-                        likes = int(likes_raw.replace(',',''))
+                        elements = self.webdriver.find_elements_by_css_selector(
+                            "button[type='button'] span")
+                        likes = int([n.text for n in elements if n.text != ""][0])
                         if likes > likes_over:
                             print(f"{username}'s post has over {likes_over} likes.")
                             print("-" * 50)
@@ -334,24 +333,20 @@ class InstagramBot():
                     try:
                         if username not in prev_user_list and not likes_over_limit:
                             print(f"Looking at {username}'s post...")
-                            follow_button = '/html/body/div[4]/div[2]/div/article/header/div[2]/div[1]/div[2]/button'
-                            if self.webdriver.find_element_by_xpath(follow_button).text == 'Follow':
-                                db.add_user(username)
-                                self.webdriver.find_element_by_xpath(follow_button).click()
-                                followed += 1
-                                print(f"Followed: {username}, #{followed}")
-                                new_followed.append(username)
-
-                            button_like = self.webdriver.find_element_by_xpath(
-                                "/html/body/div[4]/div[2]/div/article/div[3]/section[1]/span[1]/button")
-                            button_like.click()
+                            self.follow_user_on_post()
+                            db.add_user(username)
+                            followed += 1
+                            print(f"Followed: @{username}, #{followed}")
+                            new_followed.append(username)
+                            self.like_post()
                             likes += 1
                             new_likes += 1
-                            print(f"Liked {username}'s post: {likes} likes")
+                            print(f"Liked @{username}'s post: {likes} likes")
                             sleep(3)
                             print("-" * 50)
+
                         else:
-                            print(f"Already following {username}.")
+                            print(f"Already following @{username}.")
                             print("-" * 50)
 
                     except:
@@ -364,7 +359,7 @@ class InstagramBot():
                 t_end = datetime.datetime.now()
 
                 t_elapsed = t_end - t_start
-                print(f"This post took {t_elapsed} seconds")
+                print(f"This hashtag took {t_elapsed} seconds")
 
             except:
                 traceback.print_exc()
