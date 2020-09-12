@@ -1,7 +1,7 @@
 import datetime
 from time import sleep
 
-from bot import constants, InstagramBot, DbHandler
+from bot import constants, InstagramBot
 
 
 def main():
@@ -16,13 +16,9 @@ def main():
 
     instagram_bot = InstagramBot(username, password)
     instagram_bot.login()
+
     instagram_bot.unfollow_new_followed_list()
-
-    instagram_bot.follow_people(hashtags, interactions=3)
-
-    # db = DbHandler()
-    # people_to_unfollow = db.get_followed_list()
-    # instagram_bot.unfollow_people(people_to_unfollow)
+    instagram_bot.follow_people_from_hashtags(hashtags, interactions=3)
 
     end = datetime.datetime.now()
     elapsed = end - start
@@ -30,12 +26,6 @@ def main():
     if elapsed.total_seconds() >= check_followers_every:
         start = datetime.datetime.now()
         instagram_bot.unfollow_new_followed_list()
-
-    # followers = instagram_bot.get_follow_list(which_list='following')
-    # breakpoint()
-    # for hashtag in hashtags:
-    #     instagram_bot.go_to_hashtags_pages(hashtags)
-    #     # do stuff
 
     instagram_bot.end_session()
 

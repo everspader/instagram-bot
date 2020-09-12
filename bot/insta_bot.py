@@ -284,6 +284,73 @@ class InstagramBot():
                 traceback.print_exc()
         return
 
+    def get_number_follow(self, username=None, which_list="following"):
+        """
+        Alternative method to scrap the list of followers or following
+        from a user using the Selenium package. Takes longer times.
+        """
+
+        if username is None:
+            username = self.get_username_from_post()
+
+        url = f'https://www.instagram.com/{username}'
+        r = requests.get(url).text
+        if which_list == "followers":
+            number_follow = re.search('"edge_followed_by":{"count":([0-9]+)}',r).group(1)
+        else:
+            number_follow = re.search('"edge_follow":{"count":([0-9]+)}',r).group(1)
+
+        return int(number_follow)
+
+    def get_follow_list(self, username=None, which_list="following", amount=None):
+        """
+        Get the list of followers or followees of a user using
+        instaloader package
+        """
+        t_start = datetime.datetime.now()
+        L = Instaloader()
+        L.login(self.username, self.password)
+
+        if username is None:
+            username = self.username
+
+        profile = Profile.from_username(L.context, username)
+
+        if which_list == "following":
+            follow_node = profile.get_followees()
+        elif whihc_list == "followers":
+            follow_node = profile.get_followers()
+
+        follow = [f.username for f in follow_node]
+        if amount:
+            follow = random.sample(follow, amount)
+        # amount = self.get_number_follow(username, which_list)
+
+        t_end = datetime.datetime.now()
+        elapsed = (t_end - t_start).total_seconds()
+        print(f"It took {elapsed} seconds to retrieve the list of {which_list}")
+        print("-" * 50)
+
+        return follow
+
+    def unfollow_new_followed_list(self):
+        """
+        Check if there are users that should be unfollowed and start
+        unfollowing them one by one.
+        """
+        print("Checking for users to unfollow...")
+        db = DbHandler()
+        unfollow_users = db.get_unfollow_list()
+
+        if len(unfollow_users) == 0:
+            print("No new users to unfollow.")
+            print("-" * 50)
+        elif len(unfollow_users) > 0:
+            print(f"{len(unfollow_users)} new users will be unfollowed...")
+            self.unfollow_people(unfollow_users)
+            print("-" * 50)
+        return
+
     def follow_people_from_hashtags(self, hashtags,
                                     interactions=10, likes_over=500):
         """
@@ -371,73 +438,6 @@ class InstagramBot():
             print(f"Following {followed} new users")
 
         return new_followed
-
-    def get_number_follow(self, username=None, which_list="following"):
-        """
-        Alternative method to scrap the list of followers or following
-        from a user using the Selenium package. Takes longer times.
-        """
-
-        if username is None:
-            username = self.get_username_from_post()
-
-        url = f'https://www.instagram.com/{username}'
-        r = requests.get(url).text
-        if which_list == "followers":
-            number_follow = re.search('"edge_followed_by":{"count":([0-9]+)}',r).group(1)
-        else:
-            number_follow = re.search('"edge_follow":{"count":([0-9]+)}',r).group(1)
-
-        return int(number_follow)
-
-    def get_follow_list(self, username=None, which_list="following", amount=None):
-        """
-        Get the list of followers or followees of a user using
-        instaloader package
-        """
-        t_start = datetime.datetime.now()
-        L = Instaloader()
-        L.login(self.username, self.password)
-
-        if username is None:
-            username = self.username
-
-        profile = Profile.from_username(L.context, username)
-
-        if which_list == "following":
-            follow_node = profile.get_followees()
-        elif whihc_list == "followers":
-            follow_node = profile.get_followers()
-
-        follow = [f.username for f in follow_node]
-        if amount:
-            follow = random.sample(follow, amount)
-        # amount = self.get_number_follow(username, which_list)
-
-        t_end = datetime.datetime.now()
-        elapsed = (t_end - t_start).total_seconds()
-        print(f"It took {elapsed} seconds to retrieve the list of {which_list}")
-        print("-" * 50)
-
-        return follow
-
-    def unfollow_new_followed_list(self):
-        """
-        Check if there are users that should be unfollowed and start
-        unfollowing them one by one.
-        """
-        print("Checking for users to unfollow...")
-        db = DbHandler()
-        unfollow_users = db.get_unfollow_list()
-
-        if len(unfollow_users) == 0:
-            print("No new users to unfollow.")
-            print("-" * 50)
-        elif len(unfollow_users) > 0:
-            print(f"{len(unfollow_users)} new users will be unfollowed...")
-            self.unfollow_people(unfollow_users)
-            print("-" * 50)
-        return
 
     def end_session(self):
         """Close browser and terminate session"""
