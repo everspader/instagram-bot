@@ -8,7 +8,7 @@ from time import sleep
 from instaloader import Instaloader, Profile
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -204,20 +204,23 @@ class InstagramBot():
             sleep(random.randint(1,3))
             try:
                 comment_post = WebDriverWait(self.webdriver, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']"))
-                )
-                # comment_post = self.webdriver.find_element_by_css_selector(
-                    # "button[type='submit']")
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']")))
                 if comment_post.text == "Post":
                     comment_post.click()
                     sleep(random.randint(2,5))
                     return
             except NoSuchElementException:
                 print("Could not send comment to post. Element not found.")
-                return
+                raise
+            except TimeoutException as exception:
+                self.webdriver.navigate().refresh()
+                raise exception
+        except TimeoutException as exception:
+            self.webdriver.navigate().refresh()
+            raise exception
         except NoSuchElementException:
             print("Could not write comment to post. Element not found.")
-            return
+            raise
 
     def get_username_from_post(self, post_url=None):
         """Get the username of the poster"""
