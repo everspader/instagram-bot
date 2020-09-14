@@ -194,6 +194,7 @@ class InstagramBot():
             comment_box = self.webdriver.find_element_by_css_selector(
                 "form textarea")
             comment_box.send_keys(comment)
+            sleep(random.randint(2,3))
             try:
                 comment_post = self.webdriver.find_element_by_css_selector(
                     "button[type='submit']")
@@ -210,7 +211,7 @@ class InstagramBot():
 
     def get_username_from_post(self, post_url=None):
         """Get the username of the poster"""
-        breakpoint()
+
         current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
@@ -318,7 +319,7 @@ class InstagramBot():
 
         if which_list == "following":
             follow_node = profile.get_followees()
-        elif whihc_list == "followers":
+        elif which_list == "followers":
             follow_node = profile.get_followers()
 
         follow = [f.username for f in follow_node]
