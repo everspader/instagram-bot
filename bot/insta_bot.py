@@ -31,14 +31,14 @@ class InstagramBot():
 
         self.webdriver.get('https://www.instagram.com/')
         print("Redirecting to Instagram's Log In page...")
-        sleep(random.randint(5,7))
+        sleep(random.randint(4,7))
         username_input = self.webdriver.find_element_by_name("username")
         password_input = self.webdriver.find_element_by_name("password")
         username_input.send_keys(self.username)
         password_input.send_keys(self.password)
         password_input.send_keys(Keys.ENTER)
         print("Login successful!")
-        sleep(random.randint(5,7))
+        sleep(random.randint(4,7))
         self.skip_dialogs()
         print("-" * 50)
 
@@ -52,7 +52,7 @@ class InstagramBot():
                 "//*[text()='Not Now']")
             save_info_button.click()
             print("Skipping save info pop up alert.")
-            sleep(random.randint(2,4))
+            sleep(random.randint(1,5))
         except:
             pass
 
@@ -60,7 +60,7 @@ class InstagramBot():
             notification_button = self.webdriver.find_element_by_xpath("//*[text()='Not Now']")
             notification_button.click()
             print("Skipping enable notifications alert.")
-            sleep(random.randint(2,4))
+            sleep(random.randint(1,5))
         except:
             pass
 
@@ -73,14 +73,14 @@ class InstagramBot():
                 unfollow_xpath = "button span[aria-label='Following']"
                 unfollow_element = self.webdriver.find_element_by_css_selector(unfollow_xpath)
                 unfollow_element.click()
-                sleep(random.randint(2,3))
+                sleep(random.randint(1,4))
 
                 try:
                     unfollow_confirm_xpath = "//*[text()='Unfollow']"
                     unfollow_confirm_element = self.webdriver.find_element_by_xpath(unfollow_confirm_xpath)
                     if unfollow_confirm_element.text == "Unfollow":
                         unfollow_confirm_element.click()
-                        sleep(random.randint(2,3))
+                        sleep(random.randint(1,4))
                         print(f"@{username} unfollowed.")
                 except NoSuchElementException:
                     print("Could not find confirm unfollow button.")
@@ -103,7 +103,7 @@ class InstagramBot():
     def follow_user(self, username):
         """Start following a specific user"""
         self.webdriver.get(f"https://www.instagram.com/{username}")
-        sleep(random.randint(3,5))
+        sleep(random.randint(2,5))
 
         buttons = self.webdriver.find_elements_by_css_selector('button')
         try:
@@ -112,7 +112,7 @@ class InstagramBot():
                     follow_button = n
                     follow_button.click()
                     print(f"You are now following {username}.")
-                    sleep(random.randint(3,5))
+                    sleep(random.randint(2,5))
                     return
         except:
             return
@@ -127,7 +127,7 @@ class InstagramBot():
             self.webdriver.get(post_url)
             print("Redirecting to the provided Instagram post...")
             print("-" * 50)
-            sleep(random.randint(8, 10))
+            sleep(random.randint(6, 10))
         except:
             print(f"Missing post URL info.")
             return Exception
@@ -149,7 +149,7 @@ class InstagramBot():
                     follow_button.click()
                     print(f"You are now following {username}.")
                     print("-" * 50)
-                    sleep(random.randint(3,5))
+                    sleep(random.randint(2,5))
                     return
         except:
             print(f"{username} is already being followed.")
@@ -191,16 +191,17 @@ class InstagramBot():
             comment_box = self.webdriver.find_element_by_css_selector(
                 "button svg[aria-label='Comment']")
             comment_box.click()
+            sleep(random.randint(1,3))
             comment_box = self.webdriver.find_element_by_css_selector(
                 "form textarea")
             comment_box.send_keys(comment)
-            sleep(random.randint(2,3))
+            sleep(random.randint(1,3))
             try:
                 comment_post = self.webdriver.find_element_by_css_selector(
                     "button[type='submit']")
                 if comment_post.text == "Post":
                     comment_post.click()
-                    sleep(random.randint(3,5))
+                    sleep(random.randint(2,5))
                     return
             except NoSuchElementException:
                 print("Could not send comment to post. Element not found.")
@@ -329,7 +330,9 @@ class InstagramBot():
 
         t_end = datetime.datetime.now()
         elapsed = (t_end - t_start).total_seconds()
-        print(f"It took {elapsed} seconds to retrieve the list of {which_list}")
+        print(
+            f"""It took {elapsed} seconds to retrieve the list
+            of {len(follow)} {which_list}""")
         print("-" * 50)
 
         return follow
@@ -422,7 +425,7 @@ class InstagramBot():
                         continue
 
                     self.webdriver.find_element_by_link_text('Next').click()
-                    sleep(3)
+                    sleep(random.randint(2,5))
 
                 t_end = datetime.datetime.now()
 
