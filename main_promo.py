@@ -2,6 +2,7 @@ import datetime
 import json
 import os
 import random
+import sys
 from time import sleep
 
 from bot import constants, InstagramBot, DbHandler
@@ -22,7 +23,7 @@ def main(promo_settings):
     instagram_bot.login()
 
     db = DbHandler()
-    user_list_in_db = db.get_followed_list()
+    user_list_in_db = db.get_followed_list('followers')
 
     user = promo_settings['user']
     if not user:
@@ -34,7 +35,7 @@ def main(promo_settings):
         user_list = instagram_bot.get_follow_list(
             user, which_list='followers')
         for u in user_list:
-            db.add_user(u)
+            db.add_user(u, 'followers')
 
     post_url = promo_settings['post_url']
     like_post = promo_settings['like_post']
@@ -87,19 +88,19 @@ def main(promo_settings):
         comment = ""
         for n in range(combine_users):
             comment += f"@{user_list[n]} "
-            db.delete_user(user_list[n])
 
-        rm_one_user = user_list.pop(0)
-
-        instagram_bot.comment_post(comment)
-        comment_qnt += 1
-        print(f"#{comment_qnt}: {comment}")
-
-        if comment_qnt < mentions:
-            if comment_qnt % 5== 0:
-                instagram_bot.human_action()
-            if comment_qnt % 10 == 0:
-                sleep(random.randint(45, 60))
+        try:
+            instagram_bot.comment_post(comment)
+            rm_user = user_list.pop(0)
+            db.delete_user(rm_user, 'followers')
+            comment_qnt += 1
+            print(f"#{comment_qnt}: {comment}")
+        finally:
+            if comment_qnt < mentions:
+                if comment_qnt % 5== 0:
+                    instagram_bot.human_action()
+                if comment_qnt % 10 == 0:
+                    sleep(random.randint(45, 60))
 
         sleep(random.randint(10,15))
 
@@ -113,12 +114,14 @@ def main(promo_settings):
     print(f"{len(user_list_in_db)-comment_qnt} users left to be mentioned.")
     print("-" * 50)
     print("Good luck!")
+    print("-" * 50)
+    print(f"Last run at: {datetime.datetime.now()}.")
 
 if __name__ == '__main__':
     # Settings of the promo share are available in "settings-promo.json":
 
     data = None
-    settings = "settings-promo.json"
+    settings = sys.argv[1]
     settings_path = os.path.join(os.getcwd(), settings)
 
     with open(settings_path, 'r') as f:

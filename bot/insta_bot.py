@@ -264,7 +264,7 @@ class InstagramBot():
         for user in people:
             try:
                 self.unfollow_user(user)
-                db.delete_user(user)
+                db.delete_user(user, 'followers')
                 k+=1
                 print(f"@{user} deleted from db. ({k}/{len(people)})")
                 print("-" * 50)
@@ -290,7 +290,7 @@ class InstagramBot():
             try:
                 self.follow_user(user)
                 if store:
-                    db.add_user(user)
+                    db.add_user(user, 'followers')
                 k+=1
                 print(f"Now following: @{user}. ({k}/{len(people)})")
                 print("-" * 50)
@@ -356,7 +356,7 @@ class InstagramBot():
         """
         print("Checking for users to unfollow...")
         db = DbHandler()
-        unfollow_users = db.get_unfollow_list()
+        unfollow_users = db.get_unfollow_list('followers')
 
         if len(unfollow_users) == 0:
             print("No new users to unfollow.")
@@ -376,7 +376,7 @@ class InstagramBot():
         limit.
         """
         db = DbHandler()
-        prev_user_list = db.get_followed_list()
+        prev_user_list = db.get_followed_list('followers')
         new_followed = []
         followed = 0
         new_likes = 0
@@ -417,7 +417,7 @@ class InstagramBot():
                         if username not in prev_user_list and not likes_over_limit:
                             print(f"Looking at {username}'s post...")
                             self.follow_user_on_post()
-                            db.add_user(username)
+                            db.add_user(username, 'followers')
                             followed += 1
                             print(f"Followed: @{username}, #{followed}")
                             new_followed.append(username)
