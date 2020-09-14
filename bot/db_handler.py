@@ -19,53 +19,35 @@ class DbHandler():
         self.PASSWORD = constants.DB_PASS
         self.DBNAME = constants.DB_NAME
 
-    HOST = constants.DB_HOST
-    USER = constants.DB_USER
-    PASSWORD = constants.DB_PASS
-    DBNAME = constants.DB_NAME
-
-    def get_mydb(self):
-        if self.DBNAME == '':
-            constants.init()
-        db = DbHandler()
-        mydb = db.connect()
-
-        return mydb
-
-    def connect(self):
-        conn = psycopg2.connect(
+        self.conn = psycopg2.connect(
             database=self.DBNAME,
             user=self.USER,
             password=self.PASSWORD,
             host=self.HOST,
         )
-        return conn
 
-    # class DbFollowers(DbHandler):
     def delete_user(self, username):
         """Delete a new followed user entry from database"""
-        conn = self.get_mydb()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         sql = f"DELETE FROM followers WHERE username = '{username}'"
         cursor.execute(sql)
-        conn.commit()
+        self.conn.commit()
 
     def add_user(self, username):
         """Add a new followed user entry to database"""
-        conn = self.get_mydb()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         now = datetime.datetime.now().date()
-        sql = f"INSERT INTO followers(username, date_added) VALUES('{username}', '{now}')"
+        sql = (f"INSERT INTO followers(username, date_added) "
+               f"VALUES('{username}', '{now}')")
         cursor.execute(sql)
-        conn.commit()
+        self.conn.commit()
 
     def get_unfollow_list(self):
         """
         Return a list of users that can be unfollowed based on the DAYS_TO_UNFOLLOW setting
         specified in the settings.json
         """
-        conn = self.get_mydb()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         sql = "SELECT * FROM followers"
         cursor.execute(sql)
         results = cursor.fetchall()
@@ -80,8 +62,7 @@ class DbHandler():
     def get_followed_list(self):
         """Return a list of all the new users that the bot followed"""
         users = []
-        conn = self.get_mydb()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         sql = "SELECT * FROM followers"
         cursor.execute(sql)
         results = cursor.fetchall()
