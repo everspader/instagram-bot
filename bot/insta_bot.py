@@ -9,6 +9,9 @@ from instaloader import Instaloader, Profile
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 from bot.db_handler import DbHandler
 
@@ -188,17 +191,21 @@ class InstagramBot():
             return
 
         try:
-            comment_box = self.webdriver.find_element_by_css_selector(
-                "button svg[aria-label='Comment']")
+            comment_box = WebDriverWait(self.webdriver, 10).until(
+                    EC.element_to_be_clickable((
+                        By.CSS_SELECTOR, "button svg[aria-label='Comment']")))
             comment_box.click()
             sleep(random.randint(1,3))
-            comment_box = self.webdriver.find_element_by_css_selector(
-                "form textarea")
+            comment_box = WebDriverWait(self.webdriver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "form textarea")))
             comment_box.send_keys(comment)
             sleep(random.randint(1,3))
             try:
-                comment_post = self.webdriver.find_element_by_css_selector(
-                    "button[type='submit']")
+                comment_post = WebDriverWait(self.webdriver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']"))
+                )
+                # comment_post = self.webdriver.find_element_by_css_selector(
+                    # "button[type='submit']")
                 if comment_post.text == "Post":
                     comment_post.click()
                     sleep(random.randint(2,5))
@@ -442,6 +449,12 @@ class InstagramBot():
             print(f"Following {followed} new users")
 
         return new_followed
+
+    def human_action(self):
+        """Attempt to fake a scroll down+up human action"""
+        self.webdriver.execute_script("window.scrollTo(0, 500)")
+        sleep(random.randint(1,2))
+        self.webdriver.execute_script("window.scrollTo(0, 0)")
 
     def end_session(self):
         """Close browser and terminate session"""
