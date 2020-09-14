@@ -21,11 +21,13 @@ class InstagramBot():
     Class containing objects from Instagram's login page. Safe method
     in case the names of the page objects change over time
     """
-    def __init__(self, username, password):
-        self.webdriver_profile = webdriver.ChromeOptions()
-        self.webdriver_profile.add_experimental_option(
+    def __init__(self, username, password, mode=None):
+        self.chrome_options = webdriver.ChromeOptions()
+        if mode != None:
+            self.chrome_options.add_argument(mode)
+        self.chrome_options.add_experimental_option(
             'prefs', {'intl.accept_languages': 'en,en_US'})
-        self.webdriver = webdriver.Chrome()
+        self.webdriver = webdriver.Chrome(options=self.chrome_options)
         self.username = username
         self.password = password
 
