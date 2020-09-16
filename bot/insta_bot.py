@@ -193,30 +193,30 @@ class InstagramBot():
             return
 
         try:
-            comment_box = WebDriverWait(self.webdriver, 10).until(
-                    EC.element_to_be_clickable((
-                        By.CSS_SELECTOR, "button svg[aria-label='Comment']")))
+            comment_box = self.webdriver.find_element_by_css_selector(
+                "button svg[aria-label='Comment']")
             comment_box.click()
             sleep(random.randint(1,3))
-            comment_box = WebDriverWait(self.webdriver, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "form textarea")))
+            comment_box = self.webdriver.find_element_by_css_selector(
+                "form textarea")
             comment_box.send_keys(comment)
-            sleep(random.randint(1,3))
+            sleep(random.randint(2,4))
             try:
-                comment_post = WebDriverWait(self.webdriver, 10).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button[type='submit']")))
+                comment_post = self.webdriver.find_element_by_css_selector(
+                    "button[type='submit']")
                 if comment_post.text == "Post":
                     comment_post.click()
                     sleep(random.randint(2,5))
                     return
+
             except NoSuchElementException:
                 print("Could not send comment to post. Element not found.")
                 raise
             except TimeoutException as exception:
-                self.webdriver.navigate().refresh()
+                self.webdriver.get(self.webdriver.current_url)
                 raise exception
         except TimeoutException as exception:
-            self.webdriver.navigate().refresh()
+            self.webdriver.get(self.webdriver.current_url)
             raise exception
         except NoSuchElementException:
             print("Could not write comment to post. Element not found.")
@@ -234,7 +234,7 @@ class InstagramBot():
 
         try:
             username_url = self.webdriver.find_element_by_css_selector('a[href]')
-            username = username_url.get_attribute("text")
+            username = username_url.get_attribute("href").split('/')[-2]
             return username
         except NoSuchElementException:
             print("Couldn't find username of the poster.")
@@ -455,11 +455,39 @@ class InstagramBot():
 
         return new_followed
 
-    def human_action(self):
+    def random_scroll(self):
         """Attempt to fake a scroll down+up human action"""
-        self.webdriver.execute_script("window.scrollTo(0, 500)")
-        sleep(random.randint(1,2))
-        self.webdriver.execute_script("window.scrollTo(0, 0)")
+        scroll_times = int(random.random() * 5)
+        scroll_current = 0
+        for _ in range(scroll_times):
+            scroll_dist = int(random.random() * 500)
+            scroll_current = scroll_current + scroll_dist
+            self.webdriver.execute_script(f"window.scrollTo(0, {scroll_current})")
+        self.webdriver.execute_script(f"window.scrollTo(0, 0)")
+        sleep(random.randint(2,4))
+
+    def random_action(self, action):
+        """
+        Define some random actions to perform every now and then
+        on an attempt to trick Instagram
+        """
+        # Action 1: Like a random post from the same page
+        # Action 2: Comment on a random post from the same page
+        # Action 3: Go to another random page do something and come back
+        if action == 3:
+            breakpoint()
+            link_list = self.webdriver.find_elements_by_css_selector("a[href*='/p/']")
+            post_links = [n.get_attribute('href') for n in link_list]
+            current_url = self.webdriver.current_url
+            thumbnails = [n for n in post_links if '/c/' in n or n != current_url]
+            post = post_links[random.randint(0,len(thumbnails))]
+            self.go_to_post(post)
+            self.random_scroll()
+
+            # ...do someting in post
+            self.go_to_post(current_url)
+            return
+        pass
 
     def end_session(self):
         """Close browser and terminate session"""

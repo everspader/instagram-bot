@@ -18,12 +18,8 @@ def main(promo_settings):
     # BOT INITIALIZATION
     username = constants.INST_USER
     password = constants.INST_PASS
-
     instagram_bot = InstagramBot(username, password)
     instagram_bot.login()
-
-    db = DbHandler()
-    user_list_in_db = db.get_followed_list('followers')
 
     user = promo_settings['user']
     if not user:
@@ -31,6 +27,8 @@ def main(promo_settings):
 
     # If no users are registered in db, then retrieve a specific list of users
     # from the specified user's profile and add them to db.
+    db = DbHandler()
+    user_list_in_db = db.get_followed_list('followers')
     if not user_list_in_db:
         user_list = instagram_bot.get_follow_list(
             user, which_list='followers')
@@ -54,22 +52,22 @@ def main(promo_settings):
         print("You must provide the URL to the post.")
         return
 
-    users_to_unfollow = []
     if like_post:
         instagram_bot.like_post()
+
+    users_to_unfollow = db.get_followed_list('to_unfollow')
     post_user = instagram_bot.get_username_from_post()
-    if follow_user and post_user not in user_list_in_db:
+    if follow_user and (post_user not in users_to_unfollow):
         instagram_bot.follow_user_on_post()
-        users_to_unfollow.append(post_user)
-    if not combine_users:
-        combine_users = 1
-    # Follow an extra user:
+        db.add_user(post_user, 'to_unfollow')
+
+    # Follow one or more extra user:
     extra_user = promo_settings['extra_user']
     if extra_user:
         for n in extra_user:
-            if extra_user not in user_list_in_db:
+            if n not in users_to_unfollow:
                 instagram_bot.follow_user(n)
-                users_to_unfollow.append(n)
+                db.add_user(post_user, 'to_unfollow')
 
     # Follow the list of followers of the poster
     # Or if different rule, change 'post_user' to 'extra_user'
@@ -77,30 +75,32 @@ def main(promo_settings):
         users_to_follow = instagram_bot.get_follow_list(
             post_user, which_list='following')
         instagram_bot.follow_people(users_to_follow)
-        [users_to_unfollow.append(n) for n in users_to_follow]
+        for n in users_to_follow:
+            db.add_user(n, 'to_unfollow')
 
     # Need to go back to post page after bouncing around users pages
     instagram_bot.go_to_post(post_url)
     print(f"There are currently {len(user_list_in_db)} users to be mentioned.")
+
+    if not combine_users:
+        combine_users = 1
 
     comment_qnt = 0
     while len(user_list) >= combine_users:
         comment = ""
         for n in range(combine_users):
             comment += f"@{user_list[n]} "
-
-        try:
             instagram_bot.comment_post(comment)
             rm_user = user_list.pop(0)
             db.delete_user(rm_user, 'followers')
             comment_qnt += 1
             print(f"#{comment_qnt}: {comment}")
-        finally:
-            if comment_qnt < mentions:
-                if comment_qnt % 5== 0:
-                    instagram_bot.human_action()
-                if comment_qnt % 10 == 0:
-                    sleep(random.randint(45, 60))
+
+        if comment_qnt < mentions:
+            if comment_qnt % 5== 0:
+                instagram_bot.random_scroll()
+            if comment_qnt % 10 == 0:
+                sleep(random.randint(45, 60))
 
         sleep(random.randint(10,15))
 
@@ -112,10 +112,9 @@ def main(promo_settings):
     print(f"It took a total of {int(elapsed/60)}:{elapsed%60} minutes to run.")
     print(f"A total of {comment_qnt} comments were done.")
     print(f"{len(user_list_in_db)-comment_qnt} users left to be mentioned.")
-    print("-" * 50)
-    print("Good luck!")
-    print("-" * 50)
+    print("-" * 50 + "\nGood luck!\n" + "-" * 50)
     print(f"Last run at: {datetime.datetime.now()}.")
+
 
 if __name__ == '__main__':
     # Settings of the promo share are available in "settings-promo.json":
@@ -128,5 +127,13 @@ if __name__ == '__main__':
         data = f.read()
     obj = json.loads(data)
     promo_settings = obj['promo_settings']
+    end_promo = promo_settings['end_promo']
+    end_promo = datetime.datetime.strptime(end_promo, "%d-%m-%Y %H:%M:%S")
+    now = datetime.datetime.now()
+    if end_promo >= now:
+        main(promo_settings)
+    else:
+        print("-" * 50 + "\nInstagram promoshare has ended!\n"+ "-" * 50)
 
-    main(promo_settings)
+    # TO DO:
+    # Include an action to unfollow users after promoshare has ended
