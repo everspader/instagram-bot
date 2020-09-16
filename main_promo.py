@@ -3,6 +3,7 @@ import json
 import os
 import random
 import sys
+import time
 from time import sleep
 
 from bot import constants, InstagramBot, DbHandler
@@ -13,6 +14,8 @@ def main(promo_settings):
     Main function to run a promoshare on a specific post according
     to predefined settings.
     """
+    end_promo = promo_settings['end_promo']
+    end_promo = datetime.datetime.strptime(end_promo, "%d-%m-%Y %H:%M:%S")
     t_start = datetime.datetime.now()
 
     # BOT INITIALIZATION
@@ -20,6 +23,14 @@ def main(promo_settings):
     password = constants.INST_PASS
     instagram_bot = InstagramBot(username, password)
     instagram_bot.login()
+    db = DbHandler()
+
+    if t_start >= end_promo:
+        print("-" * 50 + "\nInstagram promoshare has ended!\n"+ "-" * 50)
+        print("Unfollowing remaining users...")
+        to_unfollow = db.get_followed_list("to_unfollow")
+        instagram_bot.unfollow_people(to_unfollow)
+        return
 
     user = promo_settings['user']
     if not user:
@@ -27,7 +38,6 @@ def main(promo_settings):
 
     # If no users are registered in db, then retrieve a specific list of users
     # from the specified user's profile and add them to db.
-    db = DbHandler()
     user_list_in_db = db.get_followed_list('followers')
     if not user_list_in_db:
         user_list = instagram_bot.get_follow_list(
@@ -80,6 +90,7 @@ def main(promo_settings):
 
     # Need to go back to post page after bouncing around users pages
     instagram_bot.go_to_post(post_url)
+    print(f"Start running at: {datetime.datetime.now()}.")
     print(f"There are currently {len(user_list_in_db)} users to be mentioned.")
 
     if not combine_users:
@@ -108,8 +119,9 @@ def main(promo_settings):
 
     t_end = datetime.datetime.now()
     elapsed = (t_end - t_start).total_seconds()
+    elapsed_formatted = time.strftime("%M:%S", time.gmtime(elapsed))
     print("-" * 50)
-    print(f"It took a total of {int(elapsed/60)}:{elapsed%60} minutes to run.")
+    print(f"It took a total of {elapsed_formatted} minutes to run.")
     print(f"A total of {comment_qnt} comments were done.")
     print(f"{len(user_list_in_db)-comment_qnt} users left to be mentioned.")
     print("-" * 50 + "\nGood luck!\n" + "-" * 50)
@@ -127,13 +139,6 @@ if __name__ == '__main__':
         data = f.read()
     obj = json.loads(data)
     promo_settings = obj['promo_settings']
-    end_promo = promo_settings['end_promo']
-    end_promo = datetime.datetime.strptime(end_promo, "%d-%m-%Y %H:%M:%S")
-    now = datetime.datetime.now()
-    if end_promo >= now:
-        main(promo_settings)
-    else:
-        print("-" * 50 + "\nInstagram promoshare has ended!\n"+ "-" * 50)
 
     # TO DO:
     # Include an action to unfollow users after promoshare has ended
