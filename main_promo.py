@@ -140,5 +140,6 @@ if __name__ == '__main__':
     obj = json.loads(data)
     promo_settings = obj['promo_settings']
 
+    main(promo_settings)
     # TO DO:
     # Include an action to unfollow users after promoshare has ended
