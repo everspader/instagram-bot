@@ -479,7 +479,6 @@ class InstagramBot():
         if action == 1:
             pass
         else:
-            breakpoint()
             link_list = self.webdriver.find_elements_by_css_selector("a[href*='/p/']")
             post_links = [n.get_attribute('href') for n in link_list]
             thumbnails = [n for n in post_links if '/c/' not in n and n != post_url]
