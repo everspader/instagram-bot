@@ -130,8 +130,6 @@ class InstagramBot():
 
         try:
             self.webdriver.get(post_url)
-            print("Redirecting to the provided Instagram post...")
-            print("-" * 50)
             sleep(random.randint(6, 10))
         except:
             print(f"Missing post URL info.")
@@ -466,28 +464,36 @@ class InstagramBot():
         self.webdriver.execute_script(f"window.scrollTo(0, 0)")
         sleep(random.randint(2,4))
 
-    def random_action(self, action):
+    def random_action(self, action, post_url=None):
         """
         Define some random actions to perform every now and then
         on an attempt to trick Instagram
         """
+        # Action 0: Go to own feed and scroll+like
         # Action 1: Like a random post from the same page
         # Action 2: Comment on a random post from the same page
         # Action 3: Go to another random page do something and come back
-        if action == 3:
+        if post_url is None:
+            post_url = self.webdriver.current_url
+        if action == 0:
+            pass
+        if action == 1:
+            pass
+        else:
             breakpoint()
             link_list = self.webdriver.find_elements_by_css_selector("a[href*='/p/']")
             post_links = [n.get_attribute('href') for n in link_list]
-            current_url = self.webdriver.current_url
-            thumbnails = [n for n in post_links if '/c/' in n or n != current_url]
-            post = post_links[random.randint(0,len(thumbnails))]
+            thumbnails = [n for n in post_links if '/c/' not in n and n != post_url]
+            post = thumbnails[random.randint(0,len(thumbnails))]
+            print("-" * 50 + "Redirecting to some other post\n" + "-" * 50)
             self.go_to_post(post)
             self.random_scroll()
-
-            # ...do someting in post
-            self.go_to_post(current_url)
+            if action == 2:
+                self.like_post()
+            # Go back to post
+            print("-" * 50 + "Going back to original post\n" + "-" * 50)
+            self.go_to_post(post_url)
             return
-        pass
 
     def end_session(self):
         """Close browser and terminate session"""
