@@ -21,8 +21,8 @@ def main(promo_settings):
     # BOT INITIALIZATION
     username = constants.INST_USER
     password = constants.INST_PASS
-    instagram_bot = InstagramBot(username, password)
-    instagram_bot.login()
+    instagram_bot = InstagramBot()
+    instagram_bot.login(username, password)
     db = DbHandler()
 
     if t_start >= end_promo:

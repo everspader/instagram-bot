@@ -21,19 +21,18 @@ class InstagramBot():
     Class containing objects from Instagram's login page. Safe method
     in case the names of the page objects change over time
     """
-    def __init__(self, username, password, mode=None):
+    def __init__(self, mode=None):
         self.chrome_options = webdriver.ChromeOptions()
         if mode != None:
             self.chrome_options.add_argument(mode)
         self.chrome_options.add_experimental_option(
             'prefs', {'intl.accept_languages': 'en,en_US'})
         self.webdriver = webdriver.Chrome(options=self.chrome_options)
+
+    def login(self, username, password):
+        """Get the username and password, input in the fields and login"""
         self.username = username
         self.password = password
-
-    def login(self):
-        """Get the username and password, input in the fields and login"""
-
         self.webdriver.get('https://www.instagram.com/')
         print("Redirecting to Instagram's Log In page...")
         sleep(random.randint(4,7))
