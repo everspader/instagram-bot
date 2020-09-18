@@ -44,6 +44,7 @@ def main(promo_settings):
             user, which_list='followers')
         for u in user_list:
             db.add_user(u, 'followers')
+        user_list_in_db = db.get_followed_list('followers')
 
     post_url = promo_settings['post_url']
     like_post = promo_settings['like_post']
@@ -54,7 +55,11 @@ def main(promo_settings):
 
     # From the users in the database, get a small random sample to
     # avoid Instagram blocking
-    user_list = random.sample(user_list_in_db, mentions)
+    if len(user_list_in_db) > mentions:
+        user_list = random.sample(user_list_in_db, mentions)
+    else:
+        user_list = user_list_in_db
+
     # BEGIN OF BOT ACTIONS:
     try:
         instagram_bot.go_to_post(post_url)
@@ -108,8 +113,9 @@ def main(promo_settings):
             print(f"#{comment_qnt}: {comment}")
 
         if comment_qnt < mentions:
-            if comment_qnt % 5== 0:
-                instagram_bot.random_scroll()
+            if comment_qnt % 5 == 0:
+                action = random.randint(0,3)
+                instagram_bot.random_action(action)
             if comment_qnt % 10 == 0:
                 sleep(random.randint(45, 60))
 
@@ -120,10 +126,9 @@ def main(promo_settings):
     t_end = datetime.datetime.now()
     elapsed = (t_end - t_start).total_seconds()
     elapsed_formatted = time.strftime("%M:%S", time.gmtime(elapsed))
-    print("-" * 50)
-    print(f"It took a total of {elapsed_formatted} minutes to run.")
     print(f"A total of {comment_qnt} comments were done.")
     print(f"{len(user_list_in_db)-comment_qnt} users left to be mentioned.")
+    print(f"-" * 50 + "\nIt took a total of {elapsed_formatted} minutes to run.")
     print("-" * 50 + "\nGood luck!\n" + "-" * 50)
     print(f"Last run at: {datetime.datetime.now()}.")
 
