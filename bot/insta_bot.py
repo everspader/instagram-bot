@@ -482,7 +482,7 @@ class InstagramBot():
             link_list = self.webdriver.find_elements_by_css_selector("a[href*='/p/']")
             post_links = [n.get_attribute('href') for n in link_list]
             thumbnails = [n for n in post_links if '/c/' not in n and n != post_url]
-            post = thumbnails[random.randint(0,len(thumbnails))]
+            post = thumbnails[random.randint(0,len(thumbnails)-1)]
             print("-" * 50 + "Redirecting to some other post\n" + "-" * 50)
             self.go_to_post(post)
             self.random_scroll()
