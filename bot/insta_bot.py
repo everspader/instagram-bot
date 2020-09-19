@@ -483,13 +483,13 @@ class InstagramBot():
             post_links = [n.get_attribute('href') for n in link_list]
             thumbnails = [n for n in post_links if '/c/' not in n and n != post_url]
             post = thumbnails[random.randint(0,len(thumbnails)-1)]
-            print("-" * 50 + "Redirecting to some other post\n" + "-" * 50)
+            print("-" * 50 + "\nRedirecting to some other post\n" + "-" * 50)
             self.go_to_post(post)
             self.random_scroll()
             if action == 2:
                 self.like_post()
             # Go back to post
-            print("-" * 50 + "Going back to original post\n" + "-" * 50)
+            print("-" * 50 + "\nGoing back to original post\n" + "-" * 50)
             self.go_to_post(post_url)
             return
 
