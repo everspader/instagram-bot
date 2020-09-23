@@ -21,7 +21,7 @@ def main(promo_settings):
     # BOT INITIALIZATION
     username = constants.INST_USER
     password = constants.INST_PASS
-    instagram_bot = InstagramBot()
+    instagram_bot = InstagramBot('--headless')
     instagram_bot.login(username, password)
     db = DbHandler()
 
@@ -104,13 +104,17 @@ def main(promo_settings):
     comment_qnt = 0
     while len(user_list) >= combine_users:
         comment = ""
-        for n in range(combine_users):
-            comment += f"@{user_list[n]} "
+        comment_users = user_list[:combine_users]
+        comment = '@' + ' @'.join(comment_users)
+
+        try:
             instagram_bot.comment_post(comment)
-            rm_user = user_list.pop(0)
-            db.delete_user(rm_user, 'followers')
             comment_qnt += 1
             print(f"#{comment_qnt}: {comment}")
+            rm_user = user_list.pop(0)
+            db.delete_user(rm_user, 'followers')
+        except:
+            continue
 
         if comment_qnt < mentions:
             if comment_qnt % 5 == 0:
@@ -128,7 +132,7 @@ def main(promo_settings):
     elapsed_formatted = time.strftime("%M:%S", time.gmtime(elapsed))
     print(f"A total of {comment_qnt} comments were done.")
     print(f"{len(user_list_in_db)-comment_qnt} users left to be mentioned.")
-    print(f"-" * 50 + "\nIt took a total of {elapsed_formatted} minutes to run.")
+    print(f"-" * 50 + f"\nIt took a total of {elapsed_formatted} minutes to run.")
     print("-" * 50 + "\nGood luck!\n" + "-" * 50)
     print(f"Last run at: {datetime.datetime.now()}.")
 

@@ -8,7 +8,8 @@ from time import sleep
 from instaloader import Instaloader, Profile
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import (
+    NoSuchElementException, TimeoutException, ElementNotInteractableException)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -212,6 +213,9 @@ class InstagramBot():
             except TimeoutException as exception:
                 self.webdriver.get(self.webdriver.current_url)
                 raise exception
+        except ElementNotInteractableException:
+            print("Could not write comment to post. Element not interactable.")
+            raise
         except TimeoutException as exception:
             self.webdriver.get(self.webdriver.current_url)
             raise exception
