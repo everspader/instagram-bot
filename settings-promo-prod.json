@@ -1,0 +1,14 @@
+{
+    "promo_settings": {
+         "post_url": "post_url",
+         "user_list": "",
+         "combine_users": true,
+         "like_post": true,
+         "follow_user": true,
+         "follow_users_user": 0,
+         "extra_user": ["account_name"],
+         "user": "username",
+         "mentions": 15,
+         "end_promo": "29-09-2020 00:00:00"
+    }
+}

@@ -96,9 +96,6 @@ class InstagramBot():
                 print(
                     f"Could not find unfollow button on {username}'s page. Maybe you don't "
                     "follow this user.")
-                # db.delete_user(user)
-                # print(f"{user} deleted from db")
-                # return exception
                 pass
         except:
             traceback.print_exc()
@@ -152,8 +149,7 @@ class InstagramBot():
                 if n.text in ["Follow"]:
                     follow_button = n
                     follow_button.click()
-                    print(f"You are now following {username}.")
-                    print("-" * 50)
+                    print("-" * 50 + f"\nYou are now following {username}.\n" +"-" * 50)
                     sleep(random.randint(2,5))
                     return
         except:
@@ -176,11 +172,10 @@ class InstagramBot():
             button_like = self.webdriver.find_element_by_css_selector(
                 "svg[aria-label='Like']")
             button_like.click()
-            print("Post liked.")
+            print("-" * 50 + "\nPost liked.\n" + "-" * 50)
         except NoSuchElementException:
             print("Could not find like button. Post not liked.")
 
-        print("-" * 50)
         return
 
     def comment_post(self, comment, post_url=None):
