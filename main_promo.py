@@ -22,7 +22,7 @@ def main(promo_settings):
     username = constants.INST_USER
     password = constants.INST_PASS
     db = DbHandler()
-    instagram_bot = InstagramBot()
+    instagram_bot = InstagramBot('--headless')
     instagram_bot.login(username, password)
 
 
@@ -106,7 +106,7 @@ def main(promo_settings):
     while len(user_list) >= combine_users:
         comment = ""
         comment_users = user_list[:combine_users]
-        comment = '@' + ' @'.join(comment_users) + ' 🍍 yes!'
+        comment = '@' + ' @'.join(comment_users) + " yes!"
 
         try:
             instagram_bot.comment_post(comment)
@@ -115,6 +115,7 @@ def main(promo_settings):
             rm_user = user_list.pop(0)
             db.delete_user(user, rm_user, 'followers')
         except:
+            instagram_bot.go_to_post(post_url)
             continue
 
         if comment_qnt < mentions:

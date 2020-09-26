@@ -146,6 +146,7 @@ class InstagramBot():
 
         try:
             buttons = self.webdriver.find_elements_by_css_selector('button')
+            username_url = self.webdriver.find_element_by_css_selector('a[href]')
             username = username_url.get_attribute("href").split('/')[-2]
             for n in buttons:
                 if n.text in ["Follow"]:
