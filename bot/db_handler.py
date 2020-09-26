@@ -32,29 +32,29 @@ class DbHandler():
         cursor.execute(sql)
         self.conn.commit()
 
-    def delete_user(self, username, table):
+    def delete_user(self, account, username, table):
         """Delete a new followed user entry from database"""
         cursor = self.conn.cursor()
-        sql = f"DELETE FROM {table} WHERE username = '{username}'"
+        sql = f"DELETE FROM {table} WHERE account = '{account}' AND username = '{username}'"
         cursor.execute(sql)
         self.conn.commit()
 
-    def add_user(self, username, table):
+    def add_user(self, account, username, table):
         """Add a new followed user entry to database"""
         cursor = self.conn.cursor()
         now = datetime.datetime.now().date()
-        sql = (f"INSERT INTO {table}(username, date_added) "
-               f"VALUES('{username}', '{now}')")
+        sql = (f"INSERT INTO {table}(username, date_added, account) "
+               f"VALUES('{username}', '{now}', '{account}')")
         cursor.execute(sql)
         self.conn.commit()
 
-    def get_unfollow_list(self, table):
+    def get_unfollow_list(self, account, table):
         """
         Return a list of users that can be unfollowed based on the DAYS_TO_UNFOLLOW setting
         specified in the settings.json
         """
         cursor = self.conn.cursor()
-        sql = f"SELECT * FROM {table}"
+        sql = f"SELECT * FROM {table} WHERE account = '{account}'"
         cursor.execute(sql)
         results = cursor.fetchall()
         users_to_unfollow = []
@@ -65,11 +65,11 @@ class DbHandler():
 
         return users_to_unfollow
 
-    def get_followed_list(self, table):
+    def get_followed_list(self, account, table):
         """Return a list of all the new users that the bot followed"""
         users = []
         cursor = self.conn.cursor()
-        sql = f"SELECT * FROM {table}"
+        sql = f"SELECT * FROM {table} WHERE account = '{account}'"
         cursor.execute(sql)
         results = cursor.fetchall()
         for r in results:

@@ -146,6 +146,7 @@ class InstagramBot():
 
         try:
             buttons = self.webdriver.find_elements_by_css_selector('button')
+            username = username_url.get_attribute("href").split('/')[-2]
             for n in buttons:
                 if n.text in ["Follow"]:
                     follow_button = n
@@ -265,7 +266,7 @@ class InstagramBot():
         for user in people:
             try:
                 self.unfollow_user(user)
-                db.delete_user(user, 'followers')
+                db.delete_user(self.username, user, 'followers')
                 k+=1
                 print(f"@{user} deleted from db. ({k}/{len(people)})")
                 print("-" * 50)
@@ -291,7 +292,7 @@ class InstagramBot():
             try:
                 self.follow_user(user)
                 if store:
-                    db.add_user(user, 'followers')
+                    db.add_user(self.username, user, 'followers')
                 k+=1
                 print(f"Now following: @{user}. ({k}/{len(people)})")
                 print("-" * 50)
@@ -357,7 +358,7 @@ class InstagramBot():
         """
         print("Checking for users to unfollow...")
         db = DbHandler()
-        unfollow_users = db.get_unfollow_list('followers')
+        unfollow_users = db.get_unfollow_list(self.username,'followers')
 
         if len(unfollow_users) == 0:
             print("No new users to unfollow.")
@@ -377,7 +378,7 @@ class InstagramBot():
         limit.
         """
         db = DbHandler()
-        prev_user_list = db.get_followed_list('followers')
+        prev_user_list = db.get_followed_list(self.username,'followers')
         new_followed = []
         followed = 0
         new_likes = 0
@@ -418,7 +419,7 @@ class InstagramBot():
                         if username not in prev_user_list and not likes_over_limit:
                             print(f"Looking at {username}'s post...")
                             self.follow_user_on_post()
-                            db.add_user(username, 'followers')
+                            db.add_user(self.username, username, 'followers')
                             followed += 1
                             print(f"Followed: @{username}, #{followed}")
                             new_followed.append(username)

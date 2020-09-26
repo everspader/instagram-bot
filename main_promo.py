@@ -21,14 +21,15 @@ def main(promo_settings):
     # BOT INITIALIZATION
     username = constants.INST_USER
     password = constants.INST_PASS
-    instagram_bot = InstagramBot('--headless')
-    instagram_bot.login(username, password)
     db = DbHandler()
+    instagram_bot = InstagramBot()
+    instagram_bot.login(username, password)
+
 
     if t_start >= end_promo:
         print("-" * 50 + "\nInstagram promoshare has ended!\n"+ "-" * 50)
         print("Unfollowing remaining users...")
-        to_unfollow = db.get_followed_list("to_unfollow")
+        to_unfollow = db.get_followed_list(username, "to_unfollow")
         instagram_bot.unfollow_people(to_unfollow)
         return
 
@@ -38,13 +39,13 @@ def main(promo_settings):
 
     # If no users are registered in db, then retrieve a specific list of users
     # from the specified user's profile and add them to db.
-    user_list_in_db = db.get_followed_list('followers')
+    user_list_in_db = db.get_followed_list(user, 'followers')
     if not user_list_in_db:
         user_list = instagram_bot.get_follow_list(
             user, which_list='followers')
         for u in user_list:
-            db.add_user(u, 'followers')
-        user_list_in_db = db.get_followed_list('followers')
+            db.add_user(user, u, 'followers')
+        user_list_in_db = db.get_followed_list(user, 'followers')
 
     post_url = promo_settings['post_url']
     like_post = promo_settings['like_post']
@@ -70,11 +71,11 @@ def main(promo_settings):
     if like_post:
         instagram_bot.like_post()
 
-    users_to_unfollow = db.get_followed_list('to_unfollow')
+    users_to_unfollow = db.get_followed_list(user, 'to_unfollow')
     post_user = instagram_bot.get_username_from_post()
     if follow_user and (post_user not in users_to_unfollow):
         instagram_bot.follow_user_on_post()
-        db.add_user(post_user, 'to_unfollow')
+        db.add_user(user, post_user, 'to_unfollow')
 
     # Follow one or more extra user:
     extra_user = promo_settings['extra_user']
@@ -82,7 +83,7 @@ def main(promo_settings):
         for n in extra_user:
             if n not in users_to_unfollow:
                 instagram_bot.follow_user(n)
-                db.add_user(post_user, 'to_unfollow')
+                db.add_user(user, post_user, 'to_unfollow')
 
     # Follow the list of followers of the poster
     # Or if different rule, change 'post_user' to 'extra_user'
@@ -91,7 +92,7 @@ def main(promo_settings):
             post_user, which_list='following')
         instagram_bot.follow_people(users_to_follow)
         for n in users_to_follow:
-            db.add_user(n, 'to_unfollow')
+            db.add_user(user, n, 'to_unfollow')
 
     # Need to go back to post page after bouncing around users pages
     instagram_bot.go_to_post(post_url)
@@ -105,14 +106,14 @@ def main(promo_settings):
     while len(user_list) >= combine_users:
         comment = ""
         comment_users = user_list[:combine_users]
-        comment = '@' + ' @'.join(comment_users)
+        comment = '@' + ' @'.join(comment_users) + ' 🍍 yes!'
 
         try:
             instagram_bot.comment_post(comment)
             comment_qnt += 1
             print(f"#{comment_qnt}: {comment}")
             rm_user = user_list.pop(0)
-            db.delete_user(rm_user, 'followers')
+            db.delete_user(user, rm_user, 'followers')
         except:
             continue
 
@@ -141,14 +142,17 @@ if __name__ == '__main__':
     # Settings of the promo share are available in "settings-promo.json":
 
     data = None
-    settings = sys.argv[1]
-    settings_path = os.path.join(os.getcwd(), settings)
+    settings_bot = sys.argv[1]
+    # settings_bot_path = os.path.join(os.getcwd(), settings_bot)
+    settings_promo = sys.argv[2]
+    settings_promo_path = os.path.join(os.getcwd(), settings_promo)
 
-    with open(settings_path, 'r') as f:
+    with open(settings_promo_path, 'r') as f:
         data = f.read()
     obj = json.loads(data)
     promo_settings = obj['promo_settings']
 
+    constants.constants(settings_bot)
     main(promo_settings)
     # TO DO:
     # Include an action to unfollow users after promoshare has ended
