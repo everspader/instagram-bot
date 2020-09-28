@@ -130,7 +130,7 @@ class InstagramBot():
             sleep(random.randint(6, 10))
         except:
             print(f"Missing post URL info.")
-            return Exception
+            raise
 
     def follow_user_on_post(self, post_url=None):
         """Start following a user from a post"""
@@ -179,7 +179,7 @@ class InstagramBot():
         return
 
     def comment_post(self, comment, post_url=None):
-        """Comment on a specific post from a link provided"""
+        """Comment on a specific post from a link provided."""
         current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
@@ -202,14 +202,20 @@ class InstagramBot():
                 if comment_post.text == "Post":
                     comment_post.click()
                     sleep(random.randint(2,5))
-                    return
+                    # After a while Instagram seems to make it harder and harder to post
+                    # multiple sequential comments. The comment box is locked for interaction,
+                    # so after clicking on post the comment, it will check if the comment box
+                    # is clickable, this means that the comment went through, otherwhise it's not.
+                    try:
+                        comment_box.click()
+                        return
+                    except ElementNotInteractableException:
+                        print("Could not post comment")
+                        raise
 
             except NoSuchElementException:
                 print("Could not send comment to post. Element not found.")
                 raise
-            except TimeoutException as exception:
-                self.webdriver.get(self.webdriver.current_url)
-                raise exception
         except ElementNotInteractableException:
             print("Could not write comment to post. Element not interactable.")
             raise

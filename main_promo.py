@@ -25,7 +25,6 @@ def main(promo_settings):
     instagram_bot = InstagramBot('--headless')
     instagram_bot.login(username, password)
 
-
     if t_start >= end_promo:
         print("-" * 50 + "\nInstagram promoshare has ended!\n"+ "-" * 50)
         print("Unfollowing remaining users...")
@@ -83,7 +82,7 @@ def main(promo_settings):
         for n in extra_user:
             if n not in users_to_unfollow:
                 instagram_bot.follow_user(n)
-                db.add_user(user, post_user, 'to_unfollow')
+                db.add_user(user, n, 'to_unfollow')
 
     # Follow the list of followers of the poster
     # Or if different rule, change 'post_user' to 'extra_user'
@@ -96,13 +95,14 @@ def main(promo_settings):
 
     # Need to go back to post page after bouncing around users pages
     instagram_bot.go_to_post(post_url)
-    print(f"Start running at: {datetime.datetime.now()}.")
+    print(f"Started running at: {datetime.datetime.now()}.")
     print(f"There are currently {len(user_list_in_db)} users to be mentioned.")
 
     if not combine_users:
         combine_users = 1
 
     comment_qnt = 0
+    comment_attempts = 0
     while len(user_list) >= combine_users:
         comment = ""
         comment_users = user_list[:combine_users]
@@ -115,8 +115,14 @@ def main(promo_settings):
             rm_user = user_list.pop(0)
             db.delete_user(user, rm_user, 'followers')
         except:
-            instagram_bot.go_to_post(post_url)
-            continue
+            comment_attempts += 1
+            print(f"*{comment_attempts} comment attempt failed.")
+            if comment_attempts < 5:
+                instagram_bot.go_to_post(post_url)
+                continue
+            else:
+                stop_commenting = True
+                break
 
         if comment_qnt < mentions:
             if comment_qnt % 5 == 0:
@@ -132,11 +138,15 @@ def main(promo_settings):
     t_end = datetime.datetime.now()
     elapsed = (t_end - t_start).total_seconds()
     elapsed_formatted = time.strftime("%M:%S", time.gmtime(elapsed))
+
+    if stop_commenting:
+        print("-" * 50 + "\n!!! Instagram has blocked commenting !!!\n" + "-" * 50)
+
     print(f"A total of {comment_qnt} comments were done.")
     print(f"{len(user_list_in_db)-comment_qnt} users left to be mentioned.")
-    print(f"-" * 50 + f"\nIt took a total of {elapsed_formatted} minutes to run.")
+    print("-" * 50 + f"\nIt took a total of {elapsed_formatted} minutes to run.")
     print("-" * 50 + "\nGood luck!\n" + "-" * 50)
-    print(f"Last run at: {datetime.datetime.now()}.")
+    print(f"Finished running at: {datetime.datetime.now()}.")
 
 
 if __name__ == '__main__':
