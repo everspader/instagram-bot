@@ -108,7 +108,6 @@ def main(promo_settings):
         comment = ""
         comment_users = user_list[:combine_users]
         comment = '@' + ' @'.join(comment_users) + " yes!"
-
         try:
             instagram_bot.comment_post(comment)
             comment_qnt += 1
@@ -123,6 +122,7 @@ def main(promo_settings):
                 continue
             else:
                 stop_commenting = True
+                comment_attempts = 0
                 break
 
         if comment_qnt < mentions:
@@ -143,8 +143,13 @@ def main(promo_settings):
     if stop_commenting:
         print("-" * 50 + "\n!!! Instagram has blocked commenting !!!\n" + "-" * 50)
 
+    if len(user_list_in_db) != 0:
+        users_left = len(user_list_in_db)-comment_qnt
+    else:
+        users_left = 0
+
     print(f"A total of {comment_qnt} comments were done.")
-    print(f"{len(user_list_in_db)-comment_qnt} users left to be mentioned.")
+    print(f"{users_left} users left to be mentioned.")
     print("-" * 50 + f"\nIt took a total of {elapsed_formatted} minutes to run.")
     print("-" * 50 + "\nGood luck!\n" + "-" * 50)
     print(f"Finished running at: {datetime.datetime.now()}.")

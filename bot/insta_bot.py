@@ -347,8 +347,8 @@ class InstagramBot():
         t_end = datetime.datetime.now()
         elapsed = (t_end - t_start).total_seconds()
         print(
-            f"""It took {elapsed} seconds to retrieve the list
-            of {len(follow)} {which_list}""")
+            f"It took {elapsed} seconds to retrieve the list "
+            f"of {len(follow)} {which_list}")
         print("-" * 50)
 
         return follow
