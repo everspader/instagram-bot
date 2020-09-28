@@ -103,6 +103,7 @@ def main(promo_settings):
 
     comment_qnt = 0
     comment_attempts = 0
+    stop_commenting = False
     while len(user_list) >= combine_users:
         comment = ""
         comment_users = user_list[:combine_users]
