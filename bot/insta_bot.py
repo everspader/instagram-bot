@@ -10,17 +10,15 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import (
     NoSuchElementException, TimeoutException, ElementNotInteractableException)
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 from bot.db_handler import DbHandler
 
 
 class InstagramBot():
     """
-    Class containing objects from Instagram's login page. Safe method
-    in case the names of the page objects change over time
+    Actual bot instance and all its methods corresponding to all
+    the actions (or group of actions) that the bot will be able
+    to perform.
     """
     def __init__(self, mode=None):
         self.chrome_options = webdriver.ChromeOptions()
@@ -32,6 +30,7 @@ class InstagramBot():
 
     def login(self, username, password):
         """Get the username and password, input in the fields and login"""
+
         self.username = username
         self.password = password
         self.webdriver.get('https://www.instagram.com/')
@@ -52,6 +51,7 @@ class InstagramBot():
         Skip dialog messages asking to save info of login session
         and disable notifications for desktop.
         """
+
         try:
             save_info_button = self.webdriver.find_element_by_xpath(
                 "//*[text()='Not Now']")
@@ -71,6 +71,7 @@ class InstagramBot():
 
     def unfollow_user(self, username):
         """Unfollow a user provided its username"""
+
         try:
             self.webdriver.get(f"https://www.instagram.com/{username}")
             sleep(3)
@@ -89,8 +90,7 @@ class InstagramBot():
                         print(f"@{username} unfollowed.")
                 except NoSuchElementException:
                     print("Could not find confirm unfollow button.")
-                    # return exception
-                    pass
+                    return
 
             except NoSuchElementException:
                 print(
@@ -98,12 +98,12 @@ class InstagramBot():
                     "follow this user.")
                 pass
         except:
-            traceback.print_exc()
-            # return exception
-            pass
+            print(f"{username}'s profile not found.")
+            return
 
     def follow_user(self, username):
-        """Start following a specific user"""
+        """Start following a user given its username"""
+
         self.webdriver.get(f"https://www.instagram.com/{username}")
         sleep(random.randint(2,5))
 
@@ -133,7 +133,8 @@ class InstagramBot():
             raise
 
     def follow_user_on_post(self, post_url=None):
-        """Start following a user from a post"""
+        """Start following the publisher of a given post"""
+
         current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
@@ -161,6 +162,7 @@ class InstagramBot():
         Like a currently loaded post or visit a post from the
         link_post provided
         """
+
         current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
@@ -179,7 +181,8 @@ class InstagramBot():
         return
 
     def comment_post(self, comment, post_url=None):
-        """Comment on a specific post from a link provided."""
+        """Post a given comment to a post given its URL"""
+
         current_url = self.webdriver.current_url
         if post_url:
             self.go_to_post(post_url)
@@ -227,7 +230,7 @@ class InstagramBot():
             raise
 
     def get_username_from_post(self, post_url=None):
-        """Get the username of the poster"""
+        """Get the username of the post publisher"""
 
         current_url = self.webdriver.current_url
         if post_url:
@@ -250,9 +253,8 @@ class InstagramBot():
 
     def unfollow_people(self, people):
         """
-        Unfollow new users based on the date that they were added
-        to the database and according to the number of days that
-        they should be kept as stated in the settings.
+        Unfollow a list of given usernames that were added to the
+        the database
         """
         if not isinstance(people, (list,)):
             p = people
@@ -261,8 +263,7 @@ class InstagramBot():
 
         db = DbHandler()
 
-        print(f"{len(people)} users to be unfollowed.")
-        print("-" * 50)
+        print(f"{len(people)} users to be unfollowed.\n" + "-" * 50)
         k = 0
 
         for user in people:
@@ -270,8 +271,7 @@ class InstagramBot():
                 self.unfollow_user(user)
                 db.delete_user(self.username, user, 'followers')
                 k+=1
-                print(f"@{user} deleted from db. ({k}/{len(people)})")
-                print("-" * 50)
+                print(f"@{user} deleted from db. ({k}/{len(people)})\n" + "-" * 50)
             except:
                 traceback.print_exc()
 
@@ -283,8 +283,7 @@ class InstagramBot():
             people = []
             people.append(p)
 
-        print(f"{len(people)} users to be followed.")
-        print("-" * 50)
+        print(f"{len(people)} users to be followed.\n" + "-" * 50)
 
         if store is not None:
             db = DbHandler()
@@ -296,16 +295,16 @@ class InstagramBot():
                 if store:
                     db.add_user(self.username, user, 'followers')
                 k+=1
-                print(f"Now following: @{user}. ({k}/{len(people)})")
-                print("-" * 50)
+                print(f"Now following: @{user}. ({k}/{len(people)})\n" + "-" * 50)
             except:
                 traceback.print_exc()
-        return
 
     def get_number_follow(self, username=None, which_list="following"):
         """
-        Alternative method to scrap the list of followers or following
+        Alternative method to scrap the list of followers or followees
         from a user using the Selenium package. Takes longer times.
+        This method should be ignored. It's kept here as an example of
+        how to use Selenium for this action.
         """
 
         if username is None:
@@ -322,9 +321,11 @@ class InstagramBot():
 
     def get_follow_list(self, username=None, which_list="following", amount=None):
         """
-        Get the list of followers or followees of a user using
-        instaloader package
+        Get the complete list or a specific amount of followers or followees of
+        a user using instaloader package.
         """
+
+        # Interesting to measure how long a list takes to be retrieved
         t_start = datetime.datetime.now()
         L = Instaloader()
         L.login(self.username, self.password)
@@ -342,29 +343,28 @@ class InstagramBot():
         follow = [f.username for f in follow_node]
         if amount:
             follow = random.sample(follow, amount)
-        # amount = self.get_number_follow(username, which_list)
 
         t_end = datetime.datetime.now()
         elapsed = (t_end - t_start).total_seconds()
         print(
             f"It took {elapsed} seconds to retrieve the list "
-            f"of {len(follow)} {which_list}")
-        print("-" * 50)
+            f"of {len(follow)} {which_list}\n" + "-" * 50)
 
         return follow
 
     def unfollow_new_followed_list(self):
         """
-        Check if there are users that should be unfollowed and start
-        unfollowing them one by one.
+        Very specific method to be used when many users were followed
+        as part of a strategy to increase interactions. These users shall
+        be unfollowed after some time set in the settings.
         """
+
         print("Checking for users to unfollow...")
         db = DbHandler()
-        unfollow_users = db.get_unfollow_list(self.username,'followers')
+        unfollow_users = db.get_unfollow_list(self.username, 'followers')
 
         if len(unfollow_users) == 0:
-            print("No new users to unfollow.")
-            print("-" * 50)
+            print("No new users to unfollow.\n" + "-" * 50)
         elif len(unfollow_users) > 0:
             print(f"{len(unfollow_users)} new users will be unfollowed...")
             self.unfollow_people(unfollow_users)
@@ -379,18 +379,20 @@ class InstagramBot():
         following the user provided that the post is not over a likes
         limit.
         """
+        # This method was initially developed as a collection of actions
+        # to increase interactions via hashtags. It was never officially
+        # used but it will be maintained for possible future applications.
+
         db = DbHandler()
-        prev_user_list = db.get_followed_list(self.username,'followers')
+        prev_user_list = db.get_followed_list(self.username, 'followers')
         new_followed = []
         followed = 0
         new_likes = 0
 
         for hashtag in hashtags:
-            print(f"Redirecting to tags page for: \"#{hashtag}\"")
-            print("-" * 50)
+            print(f"Redirecting to tags page for: \"#{hashtag}\"\n" + "-" * 50)
             self.webdriver.get(f'https://www.instagram.com/explore/tags/{hashtag}/')
             sleep(5)
-
             first_thumbnail = self.webdriver.find_element_by_css_selector(
                 "a[href]")
             first_thumbnail.click()
@@ -406,8 +408,7 @@ class InstagramBot():
                             "button[type='button'] span")
                         likes = int([n.text for n in elements if n.text != ""][0])
                         if likes > likes_over:
-                            print(f"{username}'s post has over {likes_over} likes.")
-                            print("-" * 50)
+                            print(f"{username}'s post has over {likes_over} likes.\n" + "-" * 50)
                             likes_over_limit = True
                             self.webdriver.find_element_by_link_text('Next').click()
                             sleep(3)
@@ -428,13 +429,10 @@ class InstagramBot():
                             self.like_post()
                             likes += 1
                             new_likes += 1
-                            print(f"Liked @{username}'s post: {likes} likes")
+                            print(f"Liked @{username}'s post: {likes} likes\n" + "-" * 50)
                             sleep(3)
-                            print("-" * 50)
-
                         else:
-                            print(f"Already following @{username}.")
-                            print("-" * 50)
+                            print(f"Already following @{username}.\n" + "-" * 50)
 
                     except:
                         traceback.print_exc()
@@ -461,6 +459,7 @@ class InstagramBot():
 
     def random_scroll(self):
         """Attempt to fake a scroll down+up human action"""
+
         scroll_times = int(random.random() * 5)
         scroll_current = 0
         for _ in range(scroll_times):
@@ -475,8 +474,8 @@ class InstagramBot():
         Define some random actions to perform every now and then
         on an attempt to trick Instagram
         """
-        # Action 0: Go to own feed and scroll+like
-        # Action 1: Like a random post from the same page
+        # Action 0 (not imp): Go to own feed and scroll
+        # Action 1 (not imp): Like a random post from the same page
         # Action 2: Comment on a random post from the same page
         # Action 3: Go to another random page do something and come back
         if post_url is None:
@@ -504,5 +503,5 @@ class InstagramBot():
         """Close browser and terminate session"""
         self.webdriver.close()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value):
         self.end_session()
