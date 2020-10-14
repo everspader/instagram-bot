@@ -69,6 +69,27 @@ class InstagramBot():
         except:
             pass
 
+    def follow_user(self, username):
+        """Start following a user given its username"""
+
+        self.webdriver.get(f"https://www.instagram.com/{username}")
+        sleep(random.randint(2,5))
+
+        buttons = self.webdriver.find_elements_by_css_selector('button')
+        try:
+            for n in buttons:
+                if n.text in ["Follow Back", "Follow"]:
+                    follow_button = n
+                    follow_button.click()
+                    print(f"You are now following {username}.")
+                    sleep(random.randint(2,5))
+                    return
+        except:
+            return
+        else:
+            print(f"{username} is already being followed.")
+            return
+
     def unfollow_user(self, username):
         """Unfollow a user provided its username"""
 
@@ -101,37 +122,6 @@ class InstagramBot():
             print(f"{username}'s profile not found.")
             return
 
-    def follow_user(self, username):
-        """Start following a user given its username"""
-
-        self.webdriver.get(f"https://www.instagram.com/{username}")
-        sleep(random.randint(2,5))
-
-        buttons = self.webdriver.find_elements_by_css_selector('button')
-        try:
-            for n in buttons:
-                if n.text in ["Follow Back", "Follow"]:
-                    follow_button = n
-                    follow_button.click()
-                    print(f"You are now following {username}.")
-                    sleep(random.randint(2,5))
-                    return
-        except:
-            return
-        else:
-            print(f"{username} is already being followed.")
-            return
-
-    def go_to_post(self, post_url):
-        """Helper function to redirect to a post's page"""
-
-        try:
-            self.webdriver.get(post_url)
-            sleep(random.randint(6, 10))
-        except:
-            print(f"Missing post URL info.")
-            raise
-
     def follow_user_on_post(self, post_url=None):
         """Start following the publisher of a given post"""
 
@@ -156,6 +146,16 @@ class InstagramBot():
         except:
             print(f"{username} is already being followed.")
             return
+
+    def go_to_post(self, post_url):
+        """Helper function to redirect to a post's page"""
+
+        try:
+            self.webdriver.get(post_url)
+            sleep(random.randint(6, 10))
+        except:
+            print(f"Missing post URL info.")
+            raise
 
     def like_post(self, post_url=None):
         """

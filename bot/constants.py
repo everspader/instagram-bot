@@ -8,7 +8,11 @@ def constants(filename):
     data = None
     # settings = "settings-ever.json"
 
-    settings_path = os.path.join(os.getcwd(), filename)
+    try:
+        settings_path = os.path.join(os.getcwd(), filename)
+    except:
+        print("Invalid settings path")
+        return
 
     with open(settings_path, 'r') as f:
         data = f.read()

@@ -50,8 +50,8 @@ class DbHandler():
 
     def get_unfollow_list(self, account, table):
         """
-        Return a list of users that can be unfollowed based on the DAYS_TO_UNFOLLOW setting
-        specified in the settings.json
+        Return a list of users that can be unfollowed based on the
+        DAYS_TO_UNFOLLOW setting specified in the settings.json
         """
         cursor = self.conn.cursor()
         sql = f"SELECT * FROM {table} WHERE account = '{account}'"
