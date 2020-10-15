@@ -157,12 +157,21 @@ def main(promo_settings):
 
 if __name__ == '__main__':
     # Settings of the promo share are available in "settings-promo.json":
+    # TO DO:
+    # Include an action to unfollow users after promoshare has ended
 
     data = None
-    settings_bot = sys.argv[1]
-    # settings_bot_path = os.path.join(os.getcwd(), settings_bot)
-    settings_promo = sys.argv[2]
-    settings_promo_path = os.path.join(os.getcwd(), settings_promo)
+
+    if len(sys.argv) != 3:
+        print("Usage: main_promo.py settings-prod.json settings-promo.json")
+    else:
+        settings_bot = sys.argv[1]
+        settings_promo = sys.argv[2]
+
+    try:
+        settings_promo_path = os.path.join(os.getcwd(), settings_promo)
+    except:
+        print("Invalid path to promo settings.")
 
     with open(settings_promo_path, 'r') as f:
         data = f.read()
@@ -171,5 +180,3 @@ if __name__ == '__main__':
 
     constants.constants(settings_bot)
     main(promo_settings)
-    # TO DO:
-    # Include an action to unfollow users after promoshare has ended
